@@ -1,7 +1,6 @@
-import React, { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { 
   Play, 
-  RotateCcw, 
   Sparkles, 
   Compass, 
   Map, 
@@ -26,6 +25,42 @@ const COLS = 35;
 const DEFAULT_START = { row: 10, col: 5 };
 const DEFAULT_TARGET = { row: 10, col: 29 };
 
+// Pure helper to generate the initial random terrain on mount
+const createInitialGrid = () => {
+  const newGrid = [];
+  const obstacleProb = 0.3; // start with a 30% density layout
+  const dunesProb = 0.15;
+  
+  for (let r = 0; r < ROWS; r++) {
+    const row = [];
+    for (let c = 0; c < COLS; c++) {
+      const isStart = r === DEFAULT_START.row && c === DEFAULT_START.col;
+      const isTarget = r === DEFAULT_TARGET.row && c === DEFAULT_TARGET.col;
+      
+      let isObstacle = false;
+      let isDunes = false;
+      
+      if (!isStart && !isTarget) {
+        const rand = Math.random();
+        if (rand < obstacleProb) {
+          isObstacle = true;
+        } else if (rand < obstacleProb + dunesProb) {
+          isDunes = true;
+        }
+      }
+      
+      row.push({
+        row: r,
+        col: c,
+        isObstacle,
+        isDunes
+      });
+    }
+    newGrid.push(row);
+  }
+  return newGrid;
+};
+
 export default function App() {
   // --- Simulation Configuration State ---
   const [algorithm, setAlgorithm] = useState('A-Star');
@@ -34,7 +69,7 @@ export default function App() {
   const [activeBrush, setActiveBrush] = useState('obstacle'); // 'obstacle' | 'dunes' | 'clear'
   
   // --- Grid and Position State ---
-  const [grid, setGrid] = useState([]);
+  const [grid, setGrid] = useState(() => createInitialGrid());
   const [startNode, setStartNode] = useState(DEFAULT_START);
   const [targetNode, setTargetNode] = useState(DEFAULT_TARGET);
   
@@ -63,29 +98,52 @@ export default function App() {
   const isRunningRef = useRef(false);
   const timeoutRef = useRef(null);
 
-  // Initialize the grid on mount
-  useEffect(() => {
-    generateRandomTerrain(30); // start with a nice 30% density layout
+  // Clear visual simulation overlays (visited paths, etc.) but keep terrain structures
+  const clearOverlays = useCallback(() => {
+    setVisitedKeys(new Set());
+    setPathKeys(new Set());
+    setNodesExplored(0);
+    setPathCost(0);
+    setCycles(0);
   }, []);
 
-  // Run Mission Clock
-  useEffect(() => {
-    const timer = setInterval(() => {
-      setMetSeconds(prev => prev + 1);
-    }, 1000);
-    return () => clearInterval(timer);
+  // Abort running animation
+  const abortSimulation = useCallback(() => {
+    isRunningRef.current = false;
+    if (timeoutRef.current) {
+      clearTimeout(timeoutRef.current);
+      timeoutRef.current = null;
+    }
+    setIsRunning(false);
   }, []);
 
-  // Format Mission Elapsed Time (MET)
-  const formatMET = (totalSecs) => {
-    const hrs = Math.floor(totalSecs / 3600).toString().padStart(2, '0');
-    const mins = Math.floor((totalSecs % 3600) / 60).toString().padStart(2, '0');
-    const secs = (totalSecs % 60).toString().padStart(2, '0');
-    return `MET ${hrs}:${mins}:${secs}`;
-  };
+  // Update specific cell values in grid
+  const updateCellTerrain = useCallback((r, c, isObstacle, isDunes) => {
+    setGrid(prev => {
+      const copy = prev.map(row => row.map(cell => ({ ...cell })));
+      if (copy[r] && copy[r][c]) {
+        copy[r][c].isObstacle = isObstacle;
+        copy[r][c].isDunes = isDunes;
+      }
+      return copy;
+    });
+  }, []);
+
+  // Apply active brush operation to a cell
+  const paintCell = useCallback((r, c, brush) => {
+    clearOverlays();
+    setLogs([]); // layout edited, reset comparative database
+    if (brush === 'obstacle') {
+      updateCellTerrain(r, c, true, false);
+    } else if (brush === 'dunes') {
+      updateCellTerrain(r, c, false, true);
+    } else if (brush === 'clear') {
+      updateCellTerrain(r, c, false, false);
+    }
+  }, [clearOverlays, updateCellTerrain]);
 
   // Generate grid with random obstacles (craters) and dunes
-  const generateRandomTerrain = (customDensity = density) => {
+  const generateRandomTerrain = useCallback((customDensity = density) => {
     // Stop any running simulation
     abortSimulation();
     clearOverlays();
@@ -125,19 +183,10 @@ export default function App() {
     }
     setGrid(newGrid);
     setLogs([]); // clear log because the layout has changed!
-  };
-
-  // Clear visual simulation overlays (visited paths, etc.) but keep terrain structures
-  const clearOverlays = () => {
-    setVisitedKeys(new Set());
-    setPathKeys(new Set());
-    setNodesExplored(0);
-    setPathCost(0);
-    setCycles(0);
-  };
+  }, [density, startNode, targetNode, abortSimulation, clearOverlays]);
 
   // Full reset: clear grid overlay and structures back to a blank flat map
-  const resetToBlankTerrain = () => {
+  const resetToBlankTerrain = useCallback(() => {
     abortSimulation();
     const newGrid = [];
     for (let r = 0; r < ROWS; r++) {
@@ -155,20 +204,10 @@ export default function App() {
     setGrid(newGrid);
     clearOverlays();
     setLogs([]);
-  };
-
-  // Abort running animation
-  const abortSimulation = () => {
-    isRunningRef.current = false;
-    if (timeoutRef.current) {
-      clearTimeout(timeoutRef.current);
-      timeoutRef.current = null;
-    }
-    setIsRunning(false);
-  };
+  }, [abortSimulation, clearOverlays]);
 
   // --- Grid Mouse Handlers for Drag & Paint ---
-  const handleMouseDown = (r, c, e) => {
+  const handleMouseDown = useCallback((r, c) => {
     if (isRunning) return;
     
     // Check if dragging start/target nodes
@@ -184,9 +223,9 @@ export default function App() {
     setIsDrawing(true);
     setDrawType(activeBrush);
     paintCell(r, c, activeBrush);
-  };
+  }, [isRunning, startNode, targetNode, activeBrush, paintCell]);
 
-  const handleMouseEnter = (r, c) => {
+  const handleMouseEnter = useCallback((r, c) => {
     if (isRunning) return;
     
     const isStart = r === startNode.row && c === startNode.col;
@@ -217,35 +256,31 @@ export default function App() {
     if (isDrawing && !isStart && !isTarget) {
       paintCell(r, c, drawType);
     }
-  };
+  }, [isRunning, draggingNode, startNode, targetNode, isDrawing, drawType, paintCell, updateCellTerrain, clearOverlays]);
 
-  const handleMouseUp = () => {
+  const handleMouseUp = useCallback(() => {
     setIsDrawing(false);
     setDraggingNode(null);
+  }, []);
+
+
+
+  // Run Mission Clock
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setMetSeconds(prev => prev + 1);
+    }, 1000);
+    return () => clearInterval(timer);
+  }, []);
+
+  // Format Mission Elapsed Time (MET)
+  const formatMET = (totalSecs) => {
+    const hrs = Math.floor(totalSecs / 3600).toString().padStart(2, '0');
+    const mins = Math.floor((totalSecs % 3600) / 60).toString().padStart(2, '0');
+    const secs = (totalSecs % 60).toString().padStart(2, '0');
+    return `MET ${hrs}:${mins}:${secs}`;
   };
 
-  // Update specific cell values in grid
-  const updateCellTerrain = (r, c, isObstacle, isDunes) => {
-    setGrid(prev => {
-      const copy = prev.map(row => row.map(cell => ({ ...cell })));
-      copy[r][c].isObstacle = isObstacle;
-      copy[r][c].isDunes = isDunes;
-      return copy;
-    });
-  };
-
-  // Apply active brush operation to a cell
-  const paintCell = (r, c, brush) => {
-    clearOverlays();
-    setLogs([]); // layout edited, reset comparative database
-    if (brush === 'obstacle') {
-      updateCellTerrain(r, c, true, false);
-    } else if (brush === 'dunes') {
-      updateCellTerrain(r, c, false, true);
-    } else if (brush === 'clear') {
-      updateCellTerrain(r, c, false, false);
-    }
-  };
 
   // --- Pathfinding Execution ---
   const launchSimulation = () => {
@@ -708,29 +743,26 @@ export default function App() {
                     const isFrontier = frontierKeys.has(cellKey);
 
                     // Combine styling states
-                    let cellClass = "";
-                    if (isStart) {
-                      cellClass = "bg-neon-cyan/20 border-neon-cyan border shadow-neon-cyan/30 z-10 node-pulse-cyan cursor-grab";
-                    } else if (isTarget) {
-                      cellClass = "bg-neon-amber/20 border-neon-amber border shadow-neon-amber/30 z-10 node-pulse-amber cursor-grab";
-                    } else if (cell.isObstacle) {
-                      cellClass = "crater-texture";
-                    } else if (cell.isDunes) {
-                      cellClass = "dunes-texture";
-                    } else if (isPath) {
-                      cellClass = "cell-path";
-                    } else if (isFrontier) {
-                      cellClass = "cell-frontier";
-                    } else if (isVisited) {
-                      cellClass = "cell-visited";
-                    } else {
-                      cellClass = "bg-cyber-gray-dark/40";
-                    }
+                    const cellClass = isStart
+                      ? "bg-neon-cyan/20 border-neon-cyan border shadow-neon-cyan/30 z-10 node-pulse-cyan cursor-grab"
+                      : isTarget
+                      ? "bg-neon-amber/20 border-neon-amber border shadow-neon-amber/30 z-10 node-pulse-amber cursor-grab"
+                      : cell.isObstacle
+                      ? "crater-texture"
+                      : cell.isDunes
+                      ? "dunes-texture"
+                      : isPath
+                      ? "cell-path"
+                      : isFrontier
+                      ? "cell-frontier"
+                      : isVisited
+                      ? "cell-visited"
+                      : "bg-cyber-gray-dark/40";
 
                     return (
                       <div
                         key={cellKey}
-                        onMouseDown={(e) => handleMouseDown(rIdx, cIdx, e)}
+                        onMouseDown={() => handleMouseDown(rIdx, cIdx)}
                         onMouseEnter={() => handleMouseEnter(rIdx, cIdx)}
                         className={`grid-cell cursor-crosshair flex items-center justify-center relative ${cellClass}`}
                       >
@@ -806,7 +838,7 @@ export default function App() {
             },
             { 
               title: 'Compute Cycles', 
-              val: cycles === 0 && isRunning ? Math.floor(Math.random() * 200) + 15 : cycles, 
+              val: cycles === 0 && isRunning ? 'CALC...' : cycles, 
               color: 'text-neon-red text-glow-red', 
               icon: Cpu, 
               tag: 'PROCESSOR SPEED', 
