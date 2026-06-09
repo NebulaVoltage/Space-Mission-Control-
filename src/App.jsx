@@ -477,15 +477,18 @@ export default function App() {
 
   return (
     <div className="min-h-screen bg-cyber-black text-slate-200 p-4 font-sans scanlines flex flex-col relative select-none">
-      
+      {/* Subtle top ambient glowing header background */}
+      <div className="absolute top-0 left-1/4 right-1/4 h-[1px] bg-gradient-to-r from-transparent via-neon-cyan/50 to-transparent pointer-events-none"></div>
+      <div className="absolute top-0 left-1/3 right-1/3 h-[80px] bg-neon-cyan/5 blur-[80px] pointer-events-none rounded-full"></div>
+
       {/* --- HEADER --- */}
-      <header className="border-b border-cyan-900/50 pb-3 mb-4 flex flex-col sm:flex-row items-center justify-between gap-4">
+      <header className="border-b border-cyan-900/30 pb-3 mb-4 flex flex-col sm:flex-row items-center justify-between gap-4 relative z-10">
         <div className="flex items-center gap-3">
-          <div className="w-9 h-9 border border-neon-cyan flex items-center justify-center rounded glow-border-cyan animate-pulse">
-            <Radio className="text-neon-cyan w-5 h-5" />
+          <div className="w-9 h-9 border border-neon-cyan flex items-center justify-center rounded shadow-[0_0_10px_rgba(0,240,255,0.25)] animate-pulse">
+            <Radio className="text-neon-cyan w-5 h-5 animate-pulse" />
           </div>
           <div>
-            <h1 className="text-xl font-cyber-header font-black text-transparent bg-clip-text bg-gradient-to-r from-neon-cyan to-cyan-500 tracking-wider flex items-center gap-2">
+            <h1 className="text-xl font-cyber-header font-black text-transparent bg-clip-text bg-gradient-to-r from-neon-cyan to-cyan-400 tracking-wider flex items-center gap-2">
               ARES-V PATHFINDING TELEMETRY
             </h1>
             <p className="text-[10px] font-cyber-mono text-cyan-500/80 tracking-widest uppercase">
@@ -494,7 +497,7 @@ export default function App() {
           </div>
         </div>
         
-        <div className="flex items-center gap-4 bg-cyber-gray-dark border border-cyan-950 px-4 py-2 rounded shadow-inner">
+        <div className="flex items-center gap-4 bg-cyber-black/60 border border-cyan-950/80 px-4 py-2 rounded shadow-inner backdrop-blur-sm">
           <div className="flex items-center gap-2">
             <span className="relative flex h-2 w-2">
               <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-neon-green opacity-75"></span>
@@ -505,27 +508,27 @@ export default function App() {
             </span>
           </div>
           <div className="w-px h-4 bg-cyan-950"></div>
-          <div className="font-cyber-mono text-sm font-semibold text-cyan-400 tracking-wider">
+          <div className="font-cyber-mono text-sm font-semibold text-neon-cyan text-glow-cyan tracking-wider">
             {formatMET(metSeconds)}
           </div>
         </div>
       </header>
 
       {/* --- MAIN CORE INTERFACE --- */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 flex-grow" onMouseUp={handleMouseUp}>
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 flex-grow relative z-10" onMouseUp={handleMouseUp}>
         
         {/* --- LEFT CONTROL PANEL (4 cols) --- */}
         <section className="lg:col-span-4 flex flex-col gap-4">
           
           {/* Guidance Configuration Card */}
-          <div className="bg-cyber-gray-dark/90 border border-cyan-950 p-4 rounded relative overflow-hidden flex flex-col gap-4 shadow-2xl">
-            {/* Sci-fi decorative borders */}
-            <div className="absolute top-0 left-0 w-2 h-2 border-t-2 border-l-2 border-neon-cyan"></div>
-            <div className="absolute top-0 right-0 w-2 h-2 border-t-2 border-r-2 border-neon-cyan"></div>
-            <div className="absolute bottom-0 left-0 w-2 h-2 border-b-2 border-l-2 border-neon-cyan"></div>
-            <div className="absolute bottom-0 right-0 w-2 h-2 border-b-2 border-r-2 border-neon-cyan"></div>
+          <div className="glass-panel glass-panel-hover p-4 relative overflow-hidden flex flex-col gap-4 shadow-2xl">
+            {/* Sci-fi decorative corners */}
+            <div className="hud-corner-tl"></div>
+            <div className="hud-corner-tr"></div>
+            <div className="hud-corner-bl"></div>
+            <div className="hud-corner-br"></div>
             
-            <div className="flex items-center gap-2 border-b border-cyan-950 pb-2">
+            <div className="flex items-center gap-2 border-b border-cyan-950/60 pb-2">
               <Compass className="text-neon-cyan w-4 h-4" />
               <h2 className="font-cyber-header text-xs font-bold text-neon-cyan uppercase tracking-wider">
                 GUIDANCE COMPUTER CONFIG
@@ -535,9 +538,9 @@ export default function App() {
             {/* Algorithm Segmented Selector */}
             <div className="flex flex-col gap-1.5">
               <label className="text-[10px] font-cyber-header uppercase tracking-wider text-slate-400">
-                Primary Routing Algorithm
+                ROUTING COMPUTER DRIVE CORE
               </label>
-              <div className="grid grid-cols-4 gap-1 bg-cyber-black p-1 rounded border border-cyan-950">
+              <div className="grid grid-cols-4 gap-1 bg-cyber-black/80 p-1 rounded border border-cyan-950/60 shadow-inner">
                 {['BFS', 'DFS', 'Dijkstra', 'A-Star'].map(alg => (
                   <button
                     key={alg}
@@ -550,9 +553,9 @@ export default function App() {
                     disabled={isRunning}
                     className={`font-cyber-mono py-1.5 text-xs font-bold rounded transition-all cursor-pointer ${
                       algorithm === alg
-                        ? 'bg-neon-cyan/20 border border-neon-cyan text-neon-cyan text-glow-cyan'
-                        : 'text-slate-500 hover:text-slate-300 hover:bg-cyber-gray'
-                    } disabled:opacity-55 disabled:cursor-not-allowed`}
+                        ? 'bg-neon-cyan/15 border border-neon-cyan text-neon-cyan text-glow-cyan shadow-[0_0_10px_rgba(0,240,255,0.25)]'
+                        : 'text-slate-500 hover:text-slate-300 hover:bg-cyber-gray-light'
+                    } disabled:opacity-50 disabled:cursor-not-allowed`}
                   >
                     {alg === 'A-Star' ? 'A*' : alg}
                   </button>
@@ -561,18 +564,18 @@ export default function App() {
             </div>
 
             {/* Algorithm Info Monospace Tooltip */}
-            <div className="bg-cyber-black/80 border border-cyan-950 p-3 rounded text-[11px] font-cyber-mono flex flex-col gap-1.5 relative">
+            <div className="bg-cyber-black/45 backdrop-blur-md border border-cyan-950/80 p-3 rounded text-[11px] font-cyber-mono flex flex-col gap-1.5 relative shadow-inner">
               <div className="flex items-center gap-1.5 text-neon-cyan border-b border-cyan-950/40 pb-1">
                 <Info className="w-3.5 h-3.5" />
-                <span>SPECIFICATIONS: {algorithm}</span>
+                <span>DRIVE SPECIFICATIONS: {algorithm}</span>
               </div>
               <p className="text-slate-300 leading-relaxed">
                 {algorithmInfo[algorithm].desc}
               </p>
-              <div className="grid grid-cols-1 gap-1 text-slate-400 pt-1">
-                <div><span className="text-neon-amber">MISSION CONTEXT:</span> {algorithmInfo[algorithm].context}</div>
-                <div><span className="text-neon-green">PROS:</span> {algorithmInfo[algorithm].pros}</div>
-                <div><span className="text-neon-red">CONS:</span> {algorithmInfo[algorithm].cons}</div>
+              <div className="grid grid-cols-1 gap-1 text-[10px] text-slate-400 pt-1">
+                <div><span className="text-neon-amber font-semibold">MISSION METRIC:</span> {algorithmInfo[algorithm].context}</div>
+                <div><span className="text-neon-green font-semibold">ADVANTAGE:</span> {algorithmInfo[algorithm].pros}</div>
+                <div><span className="text-neon-red font-semibold">LIMITATION:</span> {algorithmInfo[algorithm].cons}</div>
               </div>
             </div>
 
@@ -581,8 +584,8 @@ export default function App() {
               {/* Speed Slider */}
               <div className="flex flex-col gap-1">
                 <div className="flex justify-between items-center text-[10px] font-cyber-header uppercase tracking-wider">
-                  <span className="text-slate-400">Simulation Velocity</span>
-                  <span className="font-cyber-mono text-neon-cyan text-glow-cyan font-bold">{speed}x</span>
+                  <span className="text-slate-400">TEMPORAL CLOCK RATE</span>
+                  <span className="font-cyber-mono text-neon-cyan text-glow-cyan font-bold">{speed * 10} Hz</span>
                 </div>
                 <input
                   type="range"
@@ -597,7 +600,7 @@ export default function App() {
               {/* Obstacle Density Slider */}
               <div className="flex flex-col gap-1">
                 <div className="flex justify-between items-center text-[10px] font-cyber-header uppercase tracking-wider">
-                  <span className="text-slate-400">Crater Density</span>
+                  <span className="text-slate-400">OBSTACLE CRATER FIELD (σ)</span>
                   <span className="font-cyber-mono text-neon-amber text-glow-amber font-bold">{density}%</span>
                 </div>
                 <input
@@ -615,13 +618,13 @@ export default function App() {
             {/* Brush Selector */}
             <div className="flex flex-col gap-1.5 pt-1">
               <label className="text-[10px] font-cyber-header uppercase tracking-wider text-slate-400">
-                Terrain Editor Brush
+                SURFACE TOPOLOGY CONFIGURATOR
               </label>
               <div className="grid grid-cols-3 gap-1">
                 {[
-                  { id: 'obstacle', label: 'Crater', color: 'border-neon-red text-neon-red bg-neon-red/10', icon: Flame },
-                  { id: 'dunes', label: 'Dunes', color: 'border-neon-amber text-neon-amber bg-neon-amber/10', icon: Compass },
-                  { id: 'clear', label: 'Eraser', color: 'border-slate-500 text-slate-400 bg-slate-500/10', icon: Eraser }
+                  { id: 'obstacle', label: 'CRATER', color: 'border-neon-red text-neon-red bg-neon-red/10 shadow-[0_0_8px_rgba(255,56,56,0.15)]', icon: Flame },
+                  { id: 'dunes', label: 'DUNES', color: 'border-neon-amber text-neon-amber bg-neon-amber/10 shadow-[0_0_8px_rgba(255,183,0,0.15)]', icon: Compass },
+                  { id: 'clear', label: 'ERASER', color: 'border-slate-500 text-slate-400 bg-slate-500/10', icon: Eraser }
                 ].map(item => {
                   const Icon = item.icon;
                   return (
@@ -631,10 +634,10 @@ export default function App() {
                         if (!isRunning) setActiveBrush(item.id);
                       }}
                       disabled={isRunning}
-                      className={`flex items-center justify-center gap-1.5 py-1.5 border text-xs rounded transition-all cursor-pointer ${
+                      className={`flex items-center justify-center gap-1.5 py-1.5 border text-[10px] font-cyber-header tracking-wider rounded transition-all cursor-pointer ${
                         activeBrush === item.id 
                           ? `${item.color} font-bold ring-1 ring-offset-0 ring-offset-cyber-black`
-                          : 'border-cyan-950 text-slate-500 hover:text-slate-300 hover:bg-cyber-gray-dark'
+                          : 'border-cyan-950/60 text-slate-500 hover:text-slate-300 hover:bg-cyber-black/40'
                       } disabled:opacity-50 disabled:cursor-not-allowed`}
                     >
                       <Icon className="w-3.5 h-3.5" />
@@ -646,15 +649,15 @@ export default function App() {
             </div>
 
             {/* Sci-Fi Action Control Buttons */}
-            <div className="flex flex-col gap-2 pt-2 border-t border-cyan-950/50">
+            <div className="flex flex-col gap-2 pt-2 border-t border-cyan-950/40">
               {/* Launch Simulation Button - Primary Action */}
               <button
                 onClick={launchSimulation}
                 disabled={isRunning}
-                className="w-full relative py-3 bg-gradient-to-r from-cyan-600 to-cyan-500 hover:from-cyan-500 hover:to-cyan-400 text-cyber-black font-cyber-header font-black text-sm tracking-widest rounded shadow-lg shadow-cyan-500/10 active:scale-95 transition-all duration-150 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 border border-neon-cyan/50 node-pulse-cyan"
+                className="w-full relative py-3 bg-gradient-to-r from-cyan-500 to-cyan-400 hover:from-cyan-400 hover:to-cyan-300 text-cyber-black font-cyber-header font-black text-xs tracking-widest rounded-md shadow-[0_0_20px_rgba(0,240,255,0.3)] active:scale-[0.98] transition-all duration-150 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 border border-neon-cyan/60 node-pulse-cyan"
               >
                 <Play className="fill-cyber-black w-4 h-4" />
-                <span>LAUNCH SIMULATION</span>
+                <span>ENGAGE ROUTING DRIVE</span>
               </button>
 
               <div className="grid grid-cols-2 gap-2">
@@ -662,10 +665,10 @@ export default function App() {
                 <button
                   onClick={() => generateRandomTerrain()}
                   disabled={isRunning}
-                  className="py-2.5 bg-cyber-gray text-slate-300 border border-cyan-950 hover:border-cyan-800 hover:text-slate-100 text-xs font-cyber-header font-semibold tracking-wider rounded transition-all cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-1.5 active:scale-95"
+                  className="py-2.5 bg-cyber-black/40 text-slate-300 border border-cyan-950/80 hover:border-neon-cyan/50 hover:text-slate-100 text-xs font-cyber-header font-semibold tracking-wider rounded transition-all cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-1.5 active:scale-95 shadow-inner"
                 >
-                  <Sparkles className="w-3.5 h-3.5 text-cyan-400" />
-                  <span>GEN TERRAIN</span>
+                  <Sparkles className="w-3.5 h-3.5 text-neon-cyan text-glow-cyan" />
+                  <span>SCULPT LANDSCAPE</span>
                 </button>
 
                 {/* Abort/Reset Button */}
@@ -677,10 +680,10 @@ export default function App() {
                       clearOverlays();
                     }
                   }}
-                  className="py-2.5 bg-cyber-gray border border-neon-red/30 hover:border-neon-red/70 text-neon-red bg-neon-red/5 hover:bg-neon-red/10 text-xs font-cyber-header font-semibold tracking-wider rounded transition-all cursor-pointer flex items-center justify-center gap-1.5 active:scale-95"
+                  className="py-2.5 bg-cyber-black/40 border border-neon-red/30 hover:border-neon-red/70 text-neon-red bg-neon-red/5 hover:bg-neon-red/10 text-xs font-cyber-header font-semibold tracking-wider rounded transition-all cursor-pointer flex items-center justify-center gap-1.5 active:scale-95 shadow-inner"
                 >
                   <XOctagon className="w-3.5 h-3.5" />
-                  <span>{isRunning ? 'ABORT RUN' : 'CLEAR PATH'}</span>
+                  <span>{isRunning ? 'ABORT RUN' : 'PURGE CODES'}</span>
                 </button>
               </div>
 
@@ -688,10 +691,10 @@ export default function App() {
               <button
                 onClick={resetToBlankTerrain}
                 disabled={isRunning}
-                className="py-1.5 border border-dashed border-cyan-950 hover:border-cyan-800/80 text-[10px] font-cyber-mono tracking-widest text-slate-500 hover:text-slate-400 rounded transition-all cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-1"
+                className="py-2.5 bg-cyber-black/20 hover:bg-cyber-black/60 border border-dashed border-cyan-950/60 hover:border-neon-red/30 text-[10px] font-cyber-mono tracking-widest text-slate-500 hover:text-neon-red/70 rounded-md transition-all cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-1.5 active:scale-95"
               >
-                <Grid3X3 className="w-3 h-3" />
-                <span>FLATTEN PLANET SURFACE</span>
+                <Grid3X3 className="w-3.5 h-3.5" />
+                <span>ZERO-FIELD DEPRESSION (FLATTEN)</span>
               </button>
             </div>
           </div>
@@ -700,34 +703,34 @@ export default function App() {
 
         {/* --- MAIN RADAR VIEWPORT GRID (8 cols) --- */}
         <section className="lg:col-span-8 flex flex-col gap-4">
-          <div className="bg-cyber-gray-dark/90 border border-cyan-950 p-4 rounded flex flex-col gap-3 relative shadow-2xl flex-grow justify-between">
-            <div className="absolute top-0 left-0 w-2 h-2 border-t-2 border-l-2 border-neon-cyan"></div>
-            <div className="absolute top-0 right-0 w-2 h-2 border-t-2 border-r-2 border-neon-cyan"></div>
-            <div className="absolute bottom-0 left-0 w-2 h-2 border-b-2 border-l-2 border-neon-cyan"></div>
-            <div className="absolute bottom-0 right-0 w-2 h-2 border-b-2 border-r-2 border-neon-cyan"></div>
+          <div className="glass-panel glass-panel-hover p-4 rounded flex flex-col gap-3 relative shadow-2xl flex-grow justify-between radar-sweep-container blueprint-mesh">
+            <div className="hud-corner-tl"></div>
+            <div className="hud-corner-tr"></div>
+            <div className="hud-corner-bl"></div>
+            <div className="hud-corner-br"></div>
 
             {/* Viewport Header */}
-            <div className="flex items-center justify-between border-b border-cyan-950 pb-2">
+            <div className="flex items-center justify-between border-b border-cyan-950/60 pb-2 z-10">
               <div className="flex items-center gap-2">
                 <Map className="text-neon-cyan w-4 h-4" />
                 <h2 className="font-cyber-header text-xs font-bold text-neon-cyan uppercase tracking-wider">
-                  RADAR VIEWPORT: SURFACE GRID
+                  ORBITAL TELEMETRY VIEWPORT: SURFACE GRID
                 </h2>
               </div>
               <div className="flex items-center gap-4 text-[10px] font-cyber-mono text-slate-400">
-                <div className="flex items-center gap-1.5">
-                  <span className="inline-block w-2.5 h-2.5 bg-neon-cyan/20 border border-neon-cyan rounded-full node-pulse-cyan"></span>
-                  <span>Lander: ({startNode.col}, {startNode.row})</span>
+                <div className="flex items-center gap-1.5 bg-cyan-950/30 border border-cyan-900/60 px-2.5 py-1 rounded shadow-inner">
+                  <span className="inline-block w-2 h-2 bg-neon-cyan rounded-full node-pulse-cyan"></span>
+                  <span className="tracking-wide text-glow-cyan text-neon-cyan">LANDER: [{startNode.col.toString().padStart(2, '0')}, {startNode.row.toString().padStart(2, '0')}]</span>
                 </div>
-                <div className="flex items-center gap-1.5">
-                  <span className="inline-block w-2.5 h-2.5 bg-neon-amber/20 border border-neon-amber rounded-full node-pulse-amber"></span>
-                  <span>Science: ({targetNode.col}, {targetNode.row})</span>
+                <div className="flex items-center gap-1.5 bg-amber-950/20 border border-amber-900/40 px-2.5 py-1 rounded shadow-inner">
+                  <span className="inline-block w-2 h-2 bg-neon-amber rounded-full node-pulse-amber"></span>
+                  <span className="tracking-wide text-glow-amber text-neon-amber">SCIENCE: [{targetNode.col.toString().padStart(2, '0')}, {targetNode.row.toString().padStart(2, '0')}]</span>
                 </div>
               </div>
             </div>
 
             {/* The 2D Grid Sandbox */}
-            <div className="flex flex-col items-center justify-center p-2 bg-cyber-black/90 border border-cyan-950/40 rounded flex-grow">
+            <div className="flex flex-col items-center justify-center p-2.5 bg-cyber-black/60 backdrop-blur-sm border border-cyan-950/60 rounded flex-grow my-1 z-10">
               
               {/* Outer grid boundary structure */}
               <div 
@@ -750,9 +753,9 @@ export default function App() {
 
                     // Combine styling states
                     const cellClass = isStart
-                      ? "bg-neon-cyan/20 border-neon-cyan border shadow-neon-cyan/30 z-10 node-pulse-cyan cursor-grab"
+                      ? "bg-neon-cyan/20 border-neon-cyan border shadow-neon-cyan/35 z-10 node-pulse-cyan cursor-grab"
                       : isTarget
-                      ? "bg-neon-amber/20 border-neon-amber border shadow-neon-amber/30 z-10 node-pulse-amber cursor-grab"
+                      ? "bg-neon-amber/20 border-neon-amber border shadow-neon-amber/35 z-10 node-pulse-amber cursor-grab"
                       : cell.isObstacle
                       ? "crater-texture"
                       : cell.isDunes
@@ -763,7 +766,7 @@ export default function App() {
                       ? "cell-frontier"
                       : isVisited
                       ? "cell-visited"
-                      : "bg-cyber-gray-dark/40";
+                      : "bg-cyber-gray-dark/30";
 
                     return (
                       <div
@@ -774,12 +777,12 @@ export default function App() {
                       >
                         {/* Rendering icons inside nodes */}
                         {isStart && (
-                          <span className="text-neon-cyan animate-pulse text-[9px] font-cyber-header font-black text-center">
+                          <span className="text-[12px] animate-pulse flex items-center justify-center w-full h-full drop-shadow-[0_0_8px_rgba(0,240,255,0.8)]">
                             🚀
                           </span>
                         )}
                         {isTarget && (
-                          <span className="text-neon-amber animate-pulse text-[9px] font-cyber-header font-black text-center">
+                          <span className="text-[12px] animate-pulse flex items-center justify-center w-full h-full drop-shadow-[0_0_8px_rgba(255,183,0,0.8)]">
                             💎
                           </span>
                         )}
@@ -791,27 +794,27 @@ export default function App() {
             </div>
 
             {/* Grid Edit / Assist Instructions */}
-            <div className="flex flex-wrap items-center justify-between text-[10px] font-cyber-mono text-slate-500 gap-2 border-t border-cyan-950/40 pt-2 select-none">
+            <div className="flex flex-wrap items-center justify-between text-[10px] font-cyber-mono text-slate-400 gap-2 border-t border-cyan-950/60 pt-2 select-none z-10">
               <div className="flex items-center gap-3">
-                <span className="flex items-center gap-1">
-                  <span className="inline-block w-2.5 h-2.5 bg-cyber-black border border-cyan-950"></span>
-                  <span>Empty Grid</span>
+                <span className="flex items-center gap-1 bg-cyber-black/40 px-1.5 py-0.5 border border-cyan-950/40 rounded">
+                  <span className="inline-block w-2 h-2 bg-cyber-black border border-cyan-950/50"></span>
+                  <span>BEDROCK (1x)</span>
                 </span>
-                <span className="flex items-center gap-1">
-                  <span className="inline-block w-2.5 h-2.5 crater-texture"></span>
-                  <span>Crater (Block)</span>
+                <span className="flex items-center gap-1 bg-cyber-black/40 px-1.5 py-0.5 border border-cyan-950/40 rounded">
+                  <span className="inline-block w-2 h-2 crater-texture"></span>
+                  <span>CRATER (BLOCKED)</span>
                 </span>
-                <span className="flex items-center gap-1">
-                  <span className="inline-block w-2.5 h-2.5 dunes-texture"></span>
-                  <span>Dunes (Cost: 3)</span>
+                <span className="flex items-center gap-1 bg-cyber-black/40 px-1.5 py-0.5 border border-cyan-950/40 rounded">
+                  <span className="inline-block w-2 h-2 dunes-texture"></span>
+                  <span>DUNES (3x)</span>
                 </span>
-                <span className="flex items-center gap-1">
-                  <span className="inline-block w-2.5 h-2.5 bg-neon-cyan/20 border border-neon-cyan"></span>
-                  <span>Lander / Target</span>
+                <span className="flex items-center gap-1 bg-cyber-black/40 px-1.5 py-0.5 border border-cyan-950/40 rounded">
+                  <span className="inline-block w-2 h-2 bg-neon-cyan/20 border border-neon-cyan/80"></span>
+                  <span>TERMINALS</span>
                 </span>
               </div>
-              <div className="text-right italic">
-                Drag 🚀 / 💎 to reposition. Select a Brush above and click-drag on canvas to sculpt Martian landscape.
+              <div className="text-right italic text-slate-500">
+                INPUT OVERRIDE: DRAG TERMINALS OR PAINT TOPOLOGY TO FORCE REAL-TIME RE-ROUTING.
               </div>
             </div>
 
@@ -821,54 +824,58 @@ export default function App() {
       </div>
 
       {/* --- TELEMETRY & ANALYTICS (Bottom Panel) --- */}
-      <footer className="mt-4 grid grid-cols-1 lg:grid-cols-12 gap-4">
+      <footer className="mt-4 grid grid-cols-1 lg:grid-cols-12 gap-4 relative z-10">
         
         {/* Real-time Telemetry Metrics (5 cols) */}
         <section className="lg:col-span-5 grid grid-cols-3 gap-3">
           {[
             { 
-              title: 'Nodes Explored', 
+              title: 'NODES EXPLORED', 
               val: nodesExplored, 
               color: 'text-neon-cyan text-glow-cyan', 
               icon: Search, 
               tag: 'SENSORS ACTIVE', 
-              border: 'border-cyan-950/60 shadow-cyan-950/20' 
+              border: 'border-cyan-950/60 shadow-cyan-950/20',
+              corner: 'hud-corner-tl'
             },
             { 
-              title: 'Path Cost (KM)', 
+              title: 'PATH TRAVERSAL COST', 
               val: pathCost === 0 && isRunning ? 'CALC...' : `${pathCost} KM`, 
               color: 'text-neon-amber text-glow-amber', 
               icon: Activity, 
               tag: 'TRAVERSAL WEIGHT', 
-              border: 'border-amber-950/60 shadow-amber-950/20' 
+              border: 'border-amber-950/60 shadow-amber-950/20',
+              corner: 'hud-corner-amber-tl'
             },
             { 
-              title: 'Compute Cycles', 
+              title: 'COMPUTE CYCLE TIME', 
               val: cycles === 0 && isRunning ? 'CALC...' : cycles, 
               color: 'text-neon-red text-glow-red', 
               icon: Cpu, 
-              tag: 'PROCESSOR SPEED', 
-              border: 'border-red-950/60 shadow-red-950/20' 
+              tag: 'PROCESSOR CORES', 
+              border: 'border-red-950/60 shadow-red-950/20',
+              corner: 'hud-corner-red-tl'
             }
           ].map((card, idx) => {
             const Icon = card.icon;
             return (
               <div 
                 key={idx} 
-                className={`bg-cyber-gray-dark/85 border ${card.border} p-3 rounded flex flex-col justify-between shadow-lg relative overflow-hidden`}
+                className="glass-panel p-3 rounded flex flex-col justify-between shadow-lg relative overflow-hidden"
               >
-                <div className="flex items-center justify-between border-b border-cyan-950/30 pb-1">
-                  <span className="text-[9px] font-cyber-header uppercase tracking-wider text-slate-500">
+                <div className={card.corner}></div>
+                <div className="flex items-center justify-between border-b border-cyan-950/30 pb-1 z-10">
+                  <span className="text-[9px] font-cyber-header uppercase tracking-wider text-slate-400">
                     {card.title}
                   </span>
-                  <Icon className="w-3.5 h-3.5 text-slate-600" />
+                  <Icon className="w-3.5 h-3.5 text-slate-500" />
                 </div>
-                <div className="my-2 text-center">
+                <div className="my-2.5 text-center z-10">
                   <span className={`text-xl font-cyber-mono font-bold tracking-widest ${card.color}`}>
                     {card.val}
                   </span>
                 </div>
-                <div className="text-[8px] font-cyber-mono text-slate-600 text-center tracking-widest uppercase">
+                <div className="text-[8px] font-cyber-mono text-slate-500 text-center tracking-widest uppercase z-10">
                   {card.tag}
                 </div>
               </div>
@@ -878,96 +885,98 @@ export default function App() {
 
         {/* Persisted Comparative Database Log (7 cols) */}
         <section className="lg:col-span-7">
-          <div className="bg-cyber-gray-dark/90 border border-cyan-950 p-4 rounded relative shadow-2xl">
-            <div className="absolute top-0 left-0 w-2 h-2 border-t-2 border-l-2 border-neon-cyan"></div>
-            <div className="absolute top-0 right-0 w-2 h-2 border-t-2 border-r-2 border-neon-cyan"></div>
+          <div className="glass-panel glass-panel-hover p-4 relative shadow-2xl h-full flex flex-col justify-between">
+            <div className="hud-corner-tl"></div>
+            <div className="hud-corner-tr"></div>
             
-            <div className="flex items-center gap-2 border-b border-cyan-950 pb-2 mb-2">
-              <TrendingUp className="text-neon-cyan w-4 h-4" />
-              <h2 className="font-cyber-header text-xs font-bold text-neon-cyan uppercase tracking-wider">
-                ROUTING TELEMETRY LOGGER (CURRENT LAYOUT)
-              </h2>
-            </div>
+            <div>
+              <div className="flex items-center gap-2 border-b border-cyan-950/60 pb-2 mb-2">
+                <TrendingUp className="text-neon-cyan w-4 h-4" />
+                <h2 className="font-cyber-header text-xs font-bold text-neon-cyan uppercase tracking-wider">
+                  COMPARATIVE ROUTING LOG DATABASE
+                </h2>
+              </div>
 
-            {/* Logs Table */}
-            <div className="overflow-x-auto">
-              <table className="w-full text-[11px] font-cyber-mono text-slate-300">
-                <thead>
-                  <tr className="border-b border-cyan-950/60 text-slate-500 uppercase tracking-widest text-[9px]">
-                    <th className="py-1 text-left">Algorithm</th>
-                    <th className="py-1 text-center">Shortest Path</th>
-                    <th className="py-1 text-center">Nodes Explored</th>
-                    <th className="py-1 text-center">Path Cost</th>
-                    <th className="py-1 text-right">Efficiency Score</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {['A-Star', 'Dijkstra', 'BFS', 'DFS'].map(algName => {
-                    const matchedLog = logs.find(log => log.algorithm === algName);
-                    const isSelected = algorithm === algName;
-                    
-                    return (
-                      <tr 
-                        key={algName}
-                        className={`border-b border-cyan-950/30 hover:bg-cyan-950/10 transition-colors ${
-                          isSelected ? 'text-neon-cyan font-bold bg-cyan-950/15' : ''
-                        }`}
-                      >
-                        <td className="py-1.5 text-left flex items-center gap-1.5">
-                          <span className={`w-1 h-1 rounded-full ${isSelected ? 'bg-neon-cyan animate-ping' : 'bg-slate-700'}`}></span>
-                          <span>{algName === 'A-Star' ? 'A* Search' : algName}</span>
-                        </td>
-                        <td className="py-1.5 text-center font-bold">
-                          {matchedLog ? (
-                            <span className={matchedLog.pathFound === 'Yes' ? 'text-neon-green' : 'text-neon-red'}>
-                              {matchedLog.pathFound}
-                            </span>
-                          ) : (
-                            <span className="text-slate-600">--</span>
-                          )}
-                        </td>
-                        <td className="py-1.5 text-center text-slate-400">
-                          {matchedLog ? matchedLog.nodesExplored : '--'}
-                        </td>
-                        <td className="py-1.5 text-center text-slate-400">
-                          {matchedLog ? (matchedLog.pathCost > 0 ? `${matchedLog.pathCost} KM` : 'N/A') : '--'}
-                        </td>
-                        <td className="py-1.5 text-right font-bold">
-                          {matchedLog ? (
-                            <div className="flex items-center justify-end gap-1.5">
-                              <div className="w-12 bg-cyber-black rounded-sm border border-cyan-950 h-2 overflow-hidden hidden sm:block">
-                                <div 
-                                  className="h-full bg-cyan-500 shadow-cyan-500/50 shadow-sm transition-all"
-                                  style={{ width: `${matchedLog.efficiencyScore}%` }}
-                                ></div>
-                              </div>
-                              <span className={
-                                matchedLog.efficiencyScore > 75 
-                                  ? 'text-neon-green' 
-                                  : matchedLog.efficiencyScore > 40 
-                                    ? 'text-neon-amber' 
-                                    : matchedLog.efficiencyScore > 0 
-                                      ? 'text-neon-red' 
-                                      : 'text-slate-500'
-                              }>
-                                {matchedLog.efficiencyScore}%
+              {/* Logs Table */}
+              <div className="overflow-x-auto">
+                <table className="w-full text-[11px] font-cyber-mono text-slate-300">
+                  <thead>
+                    <tr className="border-b border-cyan-950/60 text-slate-400 uppercase tracking-widest text-[9px] font-cyber-header">
+                      <th className="py-2 text-left">Algorithm</th>
+                      <th className="py-2 text-center">Drive Path</th>
+                      <th className="py-2 text-center">Nodes Analyzed</th>
+                      <th className="py-2 text-center">Path Cost</th>
+                      <th className="py-2 text-right">Traversal Efficiency</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {['A-Star', 'Dijkstra', 'BFS', 'DFS'].map(algName => {
+                      const matchedLog = logs.find(log => log.algorithm === algName);
+                      const isSelected = algorithm === algName;
+                      
+                      return (
+                        <tr 
+                          key={algName}
+                          className={`border-b border-cyan-950/20 hover:bg-cyan-950/10 transition-colors ${
+                            isSelected ? 'text-neon-cyan font-bold bg-neon-cyan/5 border-l-2 border-neon-cyan' : ''
+                          }`}
+                        >
+                          <td className="py-2 text-left flex items-center gap-1.5 pl-1.5">
+                            <span className={`w-1.5 h-1.5 rounded-full ${isSelected ? 'bg-neon-cyan animate-pulse shadow-[0_0_8px_rgba(0,240,255,1)]' : 'bg-slate-700'}`}></span>
+                            <span>{algName === 'A-Star' ? 'A* Search' : algName}</span>
+                          </td>
+                          <td className="py-2 text-center font-bold">
+                            {matchedLog ? (
+                              <span className={matchedLog.pathFound === 'Yes' ? 'text-neon-green text-glow-green' : 'text-neon-red text-glow-red'}>
+                                {matchedLog.pathFound === 'Yes' ? 'FOUND' : 'FAILED'}
                               </span>
-                            </div>
-                          ) : (
-                            <span className="text-slate-600">--</span>
-                          )}
-                        </td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
+                            ) : (
+                              <span className="text-slate-600">--</span>
+                            )}
+                          </td>
+                          <td className="py-2 text-center text-slate-400">
+                            {matchedLog ? matchedLog.nodesExplored : '--'}
+                          </td>
+                          <td className="py-2 text-center text-slate-400">
+                            {matchedLog ? (matchedLog.pathCost > 0 ? `${matchedLog.pathCost} KM` : 'N/A') : '--'}
+                          </td>
+                          <td className="py-2 text-right font-bold pr-1.5">
+                            {matchedLog ? (
+                              <div className="flex items-center justify-end gap-1.5">
+                                <div className="w-16 bg-cyber-black/75 rounded border border-cyan-950/60 h-2 overflow-hidden hidden sm:block shadow-inner">
+                                  <div 
+                                    className="h-full bg-gradient-to-r from-cyan-600 to-neon-cyan shadow-[0_0_8px_rgba(0,240,255,0.6)] transition-all duration-500"
+                                    style={{ width: `${matchedLog.efficiencyScore}%` }}
+                                  ></div>
+                                </div>
+                                <span className={
+                                  matchedLog.efficiencyScore > 75 
+                                    ? 'text-neon-green text-glow-green' 
+                                    : matchedLog.efficiencyScore > 40 
+                                      ? 'text-neon-amber text-glow-amber' 
+                                      : matchedLog.efficiencyScore > 0 
+                                        ? 'text-neon-red text-glow-red' 
+                                        : 'text-slate-500'
+                                }>
+                                  {matchedLog.efficiencyScore}%
+                                </span>
+                              </div>
+                            ) : (
+                              <span className="text-slate-600">--</span>
+                            )}
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
             </div>
 
             {/* Zero state reminder */}
             {logs.length === 0 && (
-              <div className="text-[10px] font-cyber-mono text-center text-slate-600 mt-2 italic">
-                NO LAUNCH METRICS STORED FOR CURRENT GEOMETRIC CONFIG. INITIATE NAVIGATIONAL DRIVES.
+              <div className="text-[10px] font-cyber-mono text-center text-slate-500 mt-2.5 border border-dashed border-cyan-950/40 p-2 bg-cyber-black/30 rounded italic">
+                NO TELEMETRY LOGGED. DEPLOY SIMULATION ENGINE TO RECORD LOGS.
               </div>
             )}
           </div>
