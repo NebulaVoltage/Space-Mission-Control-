@@ -319,14 +319,19 @@ export default function App() {
       }
 
       if (index < visitedNodesInOrder.length) {
-        // Expose visited nodes in batch increments
+        // Capture the nodes for this batch synchronously in the current tick
+        const batchNodes = [];
+        for (let b = 0; b < batchSize; b++) {
+          if (index + b < visitedNodesInOrder.length) {
+            batchNodes.push(visitedNodesInOrder[index + b]);
+          }
+        }
+
+        // Update visited keys using the stable pre-evaluated batch array
         setVisitedKeys(prev => {
           const next = new Set(prev);
-          for (let b = 0; b < batchSize; b++) {
-            if (index + b < visitedNodesInOrder.length) {
-              const node = visitedNodesInOrder[index + b];
-              next.add(`${node.row},${node.col}`);
-            }
+          for (const node of batchNodes) {
+            next.add(`${node.row},${node.col}`);
           }
           return next;
         });
@@ -352,10 +357,11 @@ export default function App() {
             }
 
             if (pathIdx < path.length) {
+              // Capture the path node synchronously before updating state
+              const currentNode = path[pathIdx];
               setPathKeys(prev => {
                 const next = new Set(prev);
-                const node = path[pathIdx];
-                next.add(`${node.row},${node.col}`);
+                next.add(`${currentNode.row},${currentNode.col}`);
                 return next;
               });
               
