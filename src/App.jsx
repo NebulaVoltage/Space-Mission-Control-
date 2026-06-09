@@ -21,6 +21,32 @@ import { runBFS, runDFS, runDijkstra, runAStar } from './utils/pathfinding';
 const ROWS = 20;
 const COLS = 35;
 
+// Mission Elapsed Time (MET) Clock Sub-component (performance decoupled)
+function METClock() {
+  const [metSeconds, setMetSeconds] = useState(0);
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setMetSeconds(prev => prev + 1);
+    }, 1000);
+    return () => clearInterval(timer);
+  }, []);
+
+  const formatMET = (totalSecs) => {
+    const hrs = Math.floor(totalSecs / 3600).toString().padStart(2, '0');
+    const mins = Math.floor((totalSecs % 3600) / 60).toString().padStart(2, '0');
+    const secs = (totalSecs % 60).toString().padStart(2, '0');
+    return `MET ${hrs}:${mins}:${secs}`;
+  };
+
+  return (
+    <div className="font-cyber-mono text-sm font-semibold text-neon-cyan text-glow-cyan tracking-wider">
+      {formatMET(metSeconds)}
+    </div>
+  );
+}
+
+
 // Default node locations
 const DEFAULT_START = { row: 10, col: 5 };
 const DEFAULT_TARGET = { row: 10, col: 29 };
@@ -91,9 +117,6 @@ export default function App() {
   // --- Persistent Telemetry Database Log ---
   const [logs, setLogs] = useState([]);
   
-  // --- Mission Elapsed Time (MET) Clock ---
-  const [metSeconds, setMetSeconds] = useState(0);
-  
   // Refs for tracking animation state synchronously across intervals
   const isRunningRef = useRef(false);
   const timeoutRef = useRef(null);
@@ -120,11 +143,17 @@ export default function App() {
   // Update specific cell values in grid
   const updateCellTerrain = useCallback((r, c, isObstacle, isDunes) => {
     setGrid(prev => {
-      const copy = prev.map(row => row.map(cell => ({ ...cell })));
-      if (copy[r] && copy[r][c]) {
-        copy[r][c].isObstacle = isObstacle;
-        copy[r][c].isDunes = isDunes;
+      if (!prev[r] || !prev[r][c]) return prev;
+      if (prev[r][c].isObstacle === isObstacle && prev[r][c].isDunes === isDunes) {
+        return prev;
       }
+      const copy = [...prev];
+      copy[r] = [...prev[r]];
+      copy[r][c] = {
+        ...prev[r][c],
+        isObstacle,
+        isDunes
+      };
       return copy;
     });
   }, []);
@@ -265,21 +294,7 @@ export default function App() {
 
 
 
-  // Run Mission Clock
-  useEffect(() => {
-    const timer = setInterval(() => {
-      setMetSeconds(prev => prev + 1);
-    }, 1000);
-    return () => clearInterval(timer);
-  }, []);
 
-  // Format Mission Elapsed Time (MET)
-  const formatMET = (totalSecs) => {
-    const hrs = Math.floor(totalSecs / 3600).toString().padStart(2, '0');
-    const mins = Math.floor((totalSecs % 3600) / 60).toString().padStart(2, '0');
-    const secs = (totalSecs % 60).toString().padStart(2, '0');
-    return `MET ${hrs}:${mins}:${secs}`;
-  };
 
 
   // --- Pathfinding Execution ---
@@ -508,9 +523,7 @@ export default function App() {
             </span>
           </div>
           <div className="w-px h-4 bg-cyan-950"></div>
-          <div className="font-cyber-mono text-sm font-semibold text-neon-cyan text-glow-cyan tracking-wider">
-            {formatMET(metSeconds)}
-          </div>
+          <METClock />
         </div>
       </header>
 

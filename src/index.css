@@ -51,26 +51,24 @@ body {
     linear-gradient(to bottom, rgba(0, 240, 255, 0.025) 1px, transparent 1px);
 }
 
-/* Glassmorphism panels */
+/* Solid modern sci-fi panels */
 .glass-panel {
-  background: rgba(3, 5, 8, 0.7);
-  backdrop-filter: blur(20px) saturate(180%);
-  -webkit-backdrop-filter: blur(20px) saturate(180%);
-  border: 1px solid rgba(0, 240, 255, 0.15);
+  background: #070b11;
+  border: 1px solid rgba(0, 240, 255, 0.18);
   box-shadow: 
-    0 8px 32px 0 rgba(0, 0, 0, 0.6),
-    inset 0 1px 0 0 rgba(255, 255, 255, 0.05);
-  border-radius: 8px;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    0 8px 24px rgba(0, 0, 0, 0.65),
+    inset 0 1px 0 0 rgba(255, 255, 255, 0.04);
+  border-radius: 6px;
+  transition: border-color 0.25s, background-color 0.25s, box-shadow 0.25s;
 }
 
 .glass-panel-hover:hover {
-  border-color: rgba(0, 240, 255, 0.35);
-  background: rgba(3, 5, 8, 0.8);
+  border-color: rgba(0, 240, 255, 0.38);
+  background: #0a0f18;
   box-shadow: 
-    0 15px 35px -5px rgba(0, 240, 255, 0.08),
-    0 10px 30px -10px rgba(0, 0, 0, 0.7),
-    inset 0 1px 0 0 rgba(255, 255, 255, 0.08);
+    0 8px 32px rgba(0, 240, 255, 0.04),
+    0 8px 24px rgba(0, 0, 0, 0.75),
+    inset 0 1px 0 0 rgba(255, 255, 255, 0.06);
 }
 
 /* Glowing text utilities */
@@ -96,14 +94,7 @@ body {
 }
 
 .scanlines::after {
-  content: " ";
-  display: block;
-  position: absolute;
-  top: 0; left: 0; bottom: 0; right: 0;
-  background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.12) 50%);
-  background-size: 100% 4px;
-  z-index: 99;
-  pointer-events: none;
+  display: none;
 }
 
 /* Custom glowing sliders */
@@ -114,64 +105,36 @@ input[type="range"]::-moz-range-thumb {
   box-shadow: 0 0 8px currentColor;
 }
 
-/* Grid Cell Animations */
+/* Grid Cell Animations (Optimized for smooth framerates) */
 @keyframes visitedAnimation {
   0% {
-    transform: scale(0.2);
-    background-color: rgba(189, 0, 255, 0.7);
-    box-shadow: 0 0 10px rgba(189, 0, 255, 0.5);
-    border-radius: 100%;
-  }
-  50% {
-    background-color: rgba(0, 110, 255, 0.5);
-    box-shadow: 0 0 15px rgba(0, 110, 255, 0.4);
-    transform: scale(1.1);
+    transform: scale(0.4);
+    background-color: rgba(189, 0, 255, 0.4);
   }
   100% {
     transform: scale(1);
-    background-color: rgba(0, 150, 255, 0.12);
-    border: 1px solid rgba(0, 240, 255, 0.1);
-    box-shadow: inset 0 0 6px rgba(0, 240, 255, 0.15);
+    background-color: rgba(0, 150, 255, 0.15);
+    border: 1px solid rgba(0, 240, 255, 0.12);
   }
 }
 
 @keyframes frontierAnimation {
   0% {
-    transform: scale(0.6);
     background-color: rgba(0, 240, 255, 0.15);
-    box-shadow: 0 0 4px rgba(0, 240, 255, 0.2);
-    border-radius: 4px;
-  }
-  50% {
-    background-color: rgba(0, 240, 255, 0.6);
-    box-shadow: 0 0 12px rgba(0, 240, 255, 0.6);
-    transform: scale(0.9);
   }
   100% {
-    transform: scale(1);
-    background-color: rgba(0, 240, 255, 0.3);
-    box-shadow: 0 0 6px rgba(0, 240, 255, 0.3);
+    background-color: rgba(0, 240, 255, 0.4);
   }
 }
 
 @keyframes pathAnimation {
   0% {
-    transform: scale(0.5);
-    background-color: rgba(255, 255, 255, 0.9);
-    box-shadow: 0 0 20px rgba(255, 255, 255, 1);
-    border-radius: 100%;
-  }
-  50% {
-    transform: scale(1.2);
-    background-color: rgba(0, 240, 255, 0.9);
-    box-shadow: 0 0 25px rgba(0, 240, 255, 0.8);
+    transform: scale(0.6);
+    background-color: rgba(0, 240, 255, 0.4);
   }
   100% {
     transform: scale(1);
     background-color: rgba(0, 240, 255, 0.85);
-    box-shadow: 
-      0 0 12px rgba(0, 240, 255, 0.6),
-      inset 0 0 6px rgba(255, 255, 255, 0.8);
     border: 1px solid rgba(255, 255, 255, 0.5);
   }
 }
@@ -287,17 +250,10 @@ input[type="range"]::-moz-range-thumb {
 
 .radar-sweep-container {
   position: relative;
-  overflow: hidden;
 }
 
 .radar-sweep-container::after {
-  content: "";
-  position: absolute;
-  top: 0; left: 0; right: 0; height: 100px;
-  background: linear-gradient(to bottom, rgba(0, 240, 255, 0), rgba(0, 240, 255, 0.06) 50%, rgba(0, 240, 255, 0));
-  animation: radarSweep 6s linear infinite;
-  pointer-events: none;
-  z-index: 5;
+  display: none;
 }
 
 /* HUD corner ornaments */
