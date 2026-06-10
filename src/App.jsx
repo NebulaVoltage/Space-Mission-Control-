@@ -465,28 +465,28 @@ export default function App() {
   // Selected algorithm information tooltip mapping
   const algorithmInfo = {
     'BFS': {
-      desc: 'Explores layer-by-layer outwards from landing site.',
-      context: 'Safe-zone mapping, unweighted terrain.',
-      pros: 'Guarantees shortest path on flat terrain.',
-      cons: 'Heavy memory footprint (large frontier queue).'
+      desc: 'Explores isotropic wavefront layers outwards from transmitter.',
+      context: 'Unweighted propagation path mapping.',
+      pros: 'Guarantees lowest hop-count link on flat vacuum.',
+      cons: 'High memory utilization due to wide routing table.'
     },
     'DFS': {
-      desc: 'Probes as deep as possible down a path before backtracking.',
-      context: 'Subterranean lava tube or cave exploration.',
-      pros: 'Highly efficient memory utilization.',
-      cons: 'No shortest-path guarantee; prone to bad loops.'
+      desc: 'Probes single routing branch recursively before backtracking.',
+      context: 'Experimental wormhole pathfinder probe.',
+      pros: 'Minimal memory allocation per routing sweep.',
+      cons: 'No hop-count optimization guarantee; prone to loops.'
     },
     'Dijkstra': {
-      desc: 'Explores lowest cumulative weight cost cells first.',
-      context: 'Weighted planetary navigation (sand dunes vs. bedrock).',
-      pros: 'Guarantees absolute optimal path on weighted maps.',
-      cons: 'Blind search. Explores in all directions equally.'
+      desc: 'Explores path routes sorted by lowest cumulative latency.',
+      context: 'Weighted channel navigation (grav dust vs. vacuum).',
+      pros: 'Guarantees absolute optimal routing path on weighted grids.',
+      cons: 'Unguided search. Scans all channel directions equally.'
     },
     'A-Star': {
-      desc: 'Uses weighted path cost + straight-line distance heuristic.',
-      context: 'Mars Rover real-time target destination pathfinding.',
-      pros: 'Gold standard. Directed, highly efficient search.',
-      cons: 'Requires heuristic tuning for complex terrains.'
+      desc: 'Uses accumulated route latency + geometric distance heuristic.',
+      context: 'Deep-space real-time optimal link establishing.',
+      pros: 'Industry standard. Highly directed, efficient pathfinder.',
+      cons: 'Dependent on heuristic accuracy across dust clouds.'
     }
   };
 
@@ -504,10 +504,10 @@ export default function App() {
           </div>
           <div>
             <h1 className="text-xl font-cyber-header font-black text-transparent bg-clip-text bg-gradient-to-r from-neon-cyan to-cyan-400 tracking-wider flex items-center gap-2">
-              ARES-V PATHFINDING TELEMETRY
+              VECTOR COMMUNICATIONS ROUTING TELEMETRY
             </h1>
             <p className="text-[10px] font-cyber-mono text-cyan-500/80 tracking-widest uppercase">
-              AUTONOMOUS NAVIGATIONAL SIMULATOR v4.0.0
+              DEEP SPACE COMMUNICATIONS LINK PROCESSOR v4.2.0
             </p>
           </div>
         </div>
@@ -519,7 +519,7 @@ export default function App() {
               <span className="relative inline-flex rounded-full h-2 w-2 bg-neon-green"></span>
             </span>
             <span className="font-cyber-header text-[11px] text-neon-green font-bold tracking-widest text-glow-green">
-              SYSTEM ONLINE
+              LINK ONLINE
             </span>
           </div>
           <div className="w-px h-4 bg-cyan-950"></div>
@@ -544,7 +544,7 @@ export default function App() {
             <div className="flex items-center gap-2 border-b border-cyan-950/60 pb-2">
               <Compass className="text-neon-cyan w-4 h-4" />
               <h2 className="font-cyber-header text-xs font-bold text-neon-cyan uppercase tracking-wider">
-                GUIDANCE COMPUTER CONFIG
+                LINK CORES & CHANNEL PARAMETERS
               </h2>
             </div>
 
@@ -586,7 +586,7 @@ export default function App() {
                 {algorithmInfo[algorithm].desc}
               </p>
               <div className="grid grid-cols-1 gap-1 text-[10px] text-slate-400 pt-1">
-                <div><span className="text-neon-amber font-semibold">MISSION METRIC:</span> {algorithmInfo[algorithm].context}</div>
+                <div><span className="text-neon-amber font-semibold">CHANNEL METRIC:</span> {algorithmInfo[algorithm].context}</div>
                 <div><span className="text-neon-green font-semibold">ADVANTAGE:</span> {algorithmInfo[algorithm].pros}</div>
                 <div><span className="text-neon-red font-semibold">LIMITATION:</span> {algorithmInfo[algorithm].cons}</div>
               </div>
@@ -597,7 +597,7 @@ export default function App() {
               {/* Speed Slider */}
               <div className="flex flex-col gap-1">
                 <div className="flex justify-between items-center text-[10px] font-cyber-header uppercase tracking-wider">
-                  <span className="text-slate-400">TEMPORAL CLOCK RATE</span>
+                  <span className="text-slate-400">PROCESSING TIME FREQUENCY</span>
                   <span className="font-cyber-mono text-neon-cyan text-glow-cyan font-bold">{speed * 10} Hz</span>
                 </div>
                 <input
@@ -613,7 +613,7 @@ export default function App() {
               {/* Obstacle Density Slider */}
               <div className="flex flex-col gap-1">
                 <div className="flex justify-between items-center text-[10px] font-cyber-header uppercase tracking-wider">
-                  <span className="text-slate-400">OBSTACLE CRATER FIELD (σ)</span>
+                  <span className="text-slate-400">ION DUST CLOUD INTRUSION (σ)</span>
                   <span className="font-cyber-mono text-neon-amber text-glow-amber font-bold">{density}%</span>
                 </div>
                 <input
@@ -635,9 +635,9 @@ export default function App() {
               </label>
               <div className="grid grid-cols-3 gap-1">
                 {[
-                  { id: 'obstacle', label: 'CRATER', color: 'border-neon-red text-neon-red bg-neon-red/10 shadow-[0_0_8px_rgba(255,56,56,0.15)]', icon: Flame },
-                  { id: 'dunes', label: 'DUNES', color: 'border-neon-amber text-neon-amber bg-neon-amber/10 shadow-[0_0_8px_rgba(255,183,0,0.15)]', icon: Compass },
-                  { id: 'clear', label: 'ERASER', color: 'border-slate-500 text-slate-400 bg-slate-500/10', icon: Eraser }
+                  { id: 'obstacle', label: 'ION CLOUD', color: 'border-neon-red text-neon-red bg-neon-red/10 shadow-[0_0_8px_rgba(255,56,56,0.15)]', icon: Flame },
+                  { id: 'dunes', label: 'GRAV DUST', color: 'border-neon-amber text-neon-amber bg-neon-amber/10 shadow-[0_0_8px_rgba(255,183,0,0.15)]', icon: Compass },
+                  { id: 'clear', label: 'DE-IONIZER', color: 'border-slate-500 text-slate-400 bg-slate-500/10', icon: Eraser }
                 ].map(item => {
                   const Icon = item.icon;
                   return (
@@ -670,7 +670,7 @@ export default function App() {
                 className="w-full relative py-3 bg-gradient-to-r from-cyan-500 to-cyan-400 hover:from-cyan-400 hover:to-cyan-300 text-cyber-black font-cyber-header font-black text-xs tracking-widest rounded-md shadow-[0_0_20px_rgba(0,240,255,0.3)] active:scale-[0.98] transition-all duration-150 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 border border-neon-cyan/60 node-pulse-cyan"
               >
                 <Play className="fill-cyber-black w-4 h-4" />
-                <span>ENGAGE ROUTING DRIVE</span>
+                <span>ESTABLISH VECTOR LINK</span>
               </button>
 
               <div className="grid grid-cols-2 gap-2">
@@ -681,7 +681,7 @@ export default function App() {
                   className="py-2.5 bg-cyber-black/40 text-slate-300 border border-cyan-950/80 hover:border-neon-cyan/50 hover:text-slate-100 text-xs font-cyber-header font-semibold tracking-wider rounded transition-all cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-1.5 active:scale-95 shadow-inner"
                 >
                   <Sparkles className="w-3.5 h-3.5 text-neon-cyan text-glow-cyan" />
-                  <span>SCULPT LANDSCAPE</span>
+                  <span>GENERATE ION FIELD</span>
                 </button>
 
                 {/* Abort/Reset Button */}
@@ -696,7 +696,7 @@ export default function App() {
                   className="py-2.5 bg-cyber-black/40 border border-neon-red/30 hover:border-neon-red/70 text-neon-red bg-neon-red/5 hover:bg-neon-red/10 text-xs font-cyber-header font-semibold tracking-wider rounded transition-all cursor-pointer flex items-center justify-center gap-1.5 active:scale-95 shadow-inner"
                 >
                   <XOctagon className="w-3.5 h-3.5" />
-                  <span>{isRunning ? 'ABORT RUN' : 'PURGE CODES'}</span>
+                  <span>{isRunning ? 'KILL LINK' : 'PURGE OVERLAYS'}</span>
                 </button>
               </div>
 
@@ -707,7 +707,7 @@ export default function App() {
                 className="py-2.5 bg-cyber-black/20 hover:bg-cyber-black/60 border border-dashed border-cyan-950/60 hover:border-neon-red/30 text-[10px] font-cyber-mono tracking-widest text-slate-500 hover:text-neon-red/70 rounded-md transition-all cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-1.5 active:scale-95"
               >
                 <Grid3X3 className="w-3.5 h-3.5" />
-                <span>ZERO-FIELD DEPRESSION (FLATTEN)</span>
+                <span>RESET VECTOR SPACE</span>
               </button>
             </div>
           </div>
@@ -727,17 +727,17 @@ export default function App() {
               <div className="flex items-center gap-2">
                 <Map className="text-neon-cyan w-4 h-4" />
                 <h2 className="font-cyber-header text-xs font-bold text-neon-cyan uppercase tracking-wider">
-                  ORBITAL TELEMETRY VIEWPORT: SURFACE GRID
+                  ORBITAL SECTOR VECTOR ROUTING VIEWPORT
                 </h2>
               </div>
               <div className="flex items-center gap-4 text-[10px] font-cyber-mono text-slate-400">
                 <div className="flex items-center gap-1.5 bg-cyan-950/30 border border-cyan-900/60 px-2.5 py-1 rounded shadow-inner">
                   <span className="inline-block w-2 h-2 bg-neon-cyan rounded-full node-pulse-cyan"></span>
-                  <span className="tracking-wide text-glow-cyan text-neon-cyan">LANDER: [{startNode.col.toString().padStart(2, '0')}, {startNode.row.toString().padStart(2, '0')}]</span>
+                  <span className="tracking-wide text-glow-cyan text-neon-cyan">TX-01: [{startNode.col.toString().padStart(2, '0')}, {startNode.row.toString().padStart(2, '0')}]</span>
                 </div>
                 <div className="flex items-center gap-1.5 bg-amber-950/20 border border-amber-900/40 px-2.5 py-1 rounded shadow-inner">
                   <span className="inline-block w-2 h-2 bg-neon-amber rounded-full node-pulse-amber"></span>
-                  <span className="tracking-wide text-glow-amber text-neon-amber">SCIENCE: [{targetNode.col.toString().padStart(2, '0')}, {targetNode.row.toString().padStart(2, '0')}]</span>
+                  <span className="tracking-wide text-glow-amber text-neon-amber">RX-99: [{targetNode.col.toString().padStart(2, '0')}, {targetNode.row.toString().padStart(2, '0')}]</span>
                 </div>
               </div>
             </div>
@@ -790,13 +790,13 @@ export default function App() {
                       >
                         {/* Rendering icons inside nodes */}
                         {isStart && (
-                          <span className="text-[12px] animate-pulse flex items-center justify-center w-full h-full drop-shadow-[0_0_8px_rgba(0,240,255,0.8)]">
-                            🚀
+                          <span className="text-[12px] animate-pulse flex items-center justify-center w-full h-full drop-shadow-[0_0_8px_rgba(57,255,20,0.8)]">
+                            📡
                           </span>
                         )}
                         {isTarget && (
-                          <span className="text-[12px] animate-pulse flex items-center justify-center w-full h-full drop-shadow-[0_0_8px_rgba(255,183,0,0.8)]">
-                            💎
+                          <span className="text-[12px] animate-pulse flex items-center justify-center w-full h-full drop-shadow-[0_0_8px_rgba(0,255,102,0.8)]">
+                            🛰️
                           </span>
                         )}
                       </div>
@@ -811,23 +811,23 @@ export default function App() {
               <div className="flex items-center gap-3">
                 <span className="flex items-center gap-1 bg-cyber-black/40 px-1.5 py-0.5 border border-cyan-950/40 rounded">
                   <span className="inline-block w-2 h-2 bg-cyber-black border border-cyan-950/50"></span>
-                  <span>BEDROCK (1x)</span>
+                  <span>VACUUM VECTOR (1x)</span>
                 </span>
                 <span className="flex items-center gap-1 bg-cyber-black/40 px-1.5 py-0.5 border border-cyan-950/40 rounded">
                   <span className="inline-block w-2 h-2 crater-texture"></span>
-                  <span>CRATER (BLOCKED)</span>
+                  <span>ION CLOUD (BLOCKED)</span>
                 </span>
                 <span className="flex items-center gap-1 bg-cyber-black/40 px-1.5 py-0.5 border border-cyan-950/40 rounded">
                   <span className="inline-block w-2 h-2 dunes-texture"></span>
-                  <span>DUNES (3x)</span>
+                  <span>GRAV DUST (3x)</span>
                 </span>
                 <span className="flex items-center gap-1 bg-cyber-black/40 px-1.5 py-0.5 border border-cyan-950/40 rounded">
                   <span className="inline-block w-2 h-2 bg-neon-cyan/20 border border-neon-cyan/80"></span>
-                  <span>TERMINALS</span>
+                  <span>VECTOR NODES</span>
                 </span>
               </div>
               <div className="text-right italic text-slate-500">
-                INPUT OVERRIDE: DRAG TERMINALS OR PAINT TOPOLOGY TO FORCE REAL-TIME RE-ROUTING.
+                MANUAL OVERRIDE: REPOSITION VECTOR NODES OR DEPLOY ION FIELDS TO FORCE REAL-TIME PATH RE-CALCULATION.
               </div>
             </div>
 
@@ -843,29 +843,29 @@ export default function App() {
         <section className="lg:col-span-5 grid grid-cols-3 gap-3">
           {[
             { 
-              title: 'NODES EXPLORED', 
+              title: 'SECTORS SCANNING', 
               val: nodesExplored, 
               color: 'text-neon-cyan text-glow-cyan', 
               icon: Search, 
-              tag: 'SENSORS ACTIVE', 
+              tag: 'LINK DISCOVERY', 
               border: 'border-cyan-950/60 shadow-cyan-950/20',
               corner: 'hud-corner-tl'
             },
             { 
-              title: 'PATH TRAVERSAL COST', 
-              val: pathCost === 0 && isRunning ? 'CALC...' : `${pathCost} KM`, 
+              title: 'PROPAGATION DELAY', 
+              val: pathCost === 0 && isRunning ? 'CALC...' : `${pathCost} MS`, 
               color: 'text-neon-amber text-glow-amber', 
               icon: Activity, 
-              tag: 'TRAVERSAL WEIGHT', 
+              tag: 'VECTOR LATENCY', 
               border: 'border-amber-950/60 shadow-amber-950/20',
               corner: 'hud-corner-amber-tl'
             },
             { 
-              title: 'COMPUTE CYCLE TIME', 
+              title: 'CORE CYCLES RUN', 
               val: cycles === 0 && isRunning ? 'CALC...' : cycles, 
               color: 'text-neon-red text-glow-red', 
               icon: Cpu, 
-              tag: 'PROCESSOR CORES', 
+              tag: 'COMPUTE TIME', 
               border: 'border-red-950/60 shadow-red-950/20',
               corner: 'hud-corner-red-tl'
             }
@@ -906,7 +906,7 @@ export default function App() {
               <div className="flex items-center gap-2 border-b border-cyan-950/60 pb-2 mb-2">
                 <TrendingUp className="text-neon-cyan w-4 h-4" />
                 <h2 className="font-cyber-header text-xs font-bold text-neon-cyan uppercase tracking-wider">
-                  COMPARATIVE ROUTING LOG DATABASE
+                  PROPAGATION ROUTING METRICS
                 </h2>
               </div>
 
@@ -915,11 +915,11 @@ export default function App() {
                 <table className="w-full text-[11px] font-cyber-mono text-slate-300">
                   <thead>
                     <tr className="border-b border-cyan-950/60 text-slate-400 uppercase tracking-widest text-[9px] font-cyber-header">
-                      <th className="py-2 text-left">Algorithm</th>
-                      <th className="py-2 text-center">Drive Path</th>
-                      <th className="py-2 text-center">Nodes Analyzed</th>
-                      <th className="py-2 text-center">Path Cost</th>
-                      <th className="py-2 text-right">Traversal Efficiency</th>
+                      <th className="py-2 text-left">CORE ENGINE</th>
+                      <th className="py-2 text-center">LINK PATH</th>
+                      <th className="py-2 text-center">SCAN SECTORS</th>
+                      <th className="py-2 text-center">DELAY</th>
+                      <th className="py-2 text-right">ROUTING EFFICIENCY</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -941,7 +941,7 @@ export default function App() {
                           <td className="py-2 text-center font-bold">
                             {matchedLog ? (
                               <span className={matchedLog.pathFound === 'Yes' ? 'text-neon-green text-glow-green' : 'text-neon-red text-glow-red'}>
-                                {matchedLog.pathFound === 'Yes' ? 'FOUND' : 'FAILED'}
+                                {matchedLog.pathFound === 'Yes' ? 'LINKED' : 'BLOCKED'}
                               </span>
                             ) : (
                               <span className="text-slate-600">--</span>
@@ -951,7 +951,7 @@ export default function App() {
                             {matchedLog ? matchedLog.nodesExplored : '--'}
                           </td>
                           <td className="py-2 text-center text-slate-400">
-                            {matchedLog ? (matchedLog.pathCost > 0 ? `${matchedLog.pathCost} KM` : 'N/A') : '--'}
+                            {matchedLog ? (matchedLog.pathCost > 0 ? `${matchedLog.pathCost} MS` : 'N/A') : '--'}
                           </td>
                           <td className="py-2 text-right font-bold pr-1.5">
                             {matchedLog ? (
@@ -970,7 +970,7 @@ export default function App() {
                                       : matchedLog.efficiencyScore > 0 
                                         ? 'text-neon-red text-glow-red' 
                                         : 'text-slate-500'
-                                }>
+                                  }>
                                   {matchedLog.efficiencyScore}%
                                 </span>
                               </div>
@@ -989,7 +989,7 @@ export default function App() {
             {/* Zero state reminder */}
             {logs.length === 0 && (
               <div className="text-[10px] font-cyber-mono text-center text-slate-500 mt-2.5 border border-dashed border-cyan-950/40 p-2 bg-cyber-black/30 rounded italic">
-                NO TELEMETRY LOGGED. DEPLOY SIMULATION ENGINE TO RECORD LOGS.
+                NO PROPAGATION METRICS STORED. INITIALIZE LINK PROCESSOR FOR CODES ANALYSIS.
               </div>
             )}
           </div>
@@ -1000,3 +1000,4 @@ export default function App() {
     </div>
   );
 }
+
