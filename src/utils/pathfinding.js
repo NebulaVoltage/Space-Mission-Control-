@@ -1,8 +1,8 @@
 /**
- * Autonomous Logistics Dispatch Router - Core Algorithms
+ * Space Mission Control Pathfinding Simulator - Core Algorithms
  * All algorithms assume standard 4-directional grid movement.
- * Congested traffic sectors (dunes) have a movement cost of 3, express clearways have cost of 1.
- * Infrastructure blockages cannot be traversed.
+ * Rough terrain (dunes) has a movement cost of 3, default has cost of 1.
+ * Obstacles cannot be traversed.
  */
 
 // Helper to check if coordinates are within the grid
