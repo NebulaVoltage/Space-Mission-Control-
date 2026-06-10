@@ -209,3 +209,88 @@ input[type="range"]::-webkit-slider-thumb {
 .hud-corner-tr { position: absolute; top: 0; right: 0; width: 8px; height: 8px; border-top: 1px solid rgba(0, 210, 255, 0.5); border-right: 1px solid rgba(0, 210, 255, 0.5); border-top-right-radius: 4px; }
 .hud-corner-bl { position: absolute; bottom: 0; left: 0; width: 8px; height: 8px; border-bottom: 1px solid rgba(0, 210, 255, 0.5); border-left: 1px solid rgba(0, 210, 255, 0.5); border-bottom-left-radius: 4px; }
 .hud-corner-br { position: absolute; bottom: 0; right: 0; width: 8px; height: 8px; border-bottom: 1px solid rgba(0, 210, 255, 0.5); border-right: 1px solid rgba(0, 210, 255, 0.5); border-bottom-right-radius: 4px; }
+
+/* Advanced Tree Visualization Styles */
+.tree-node-group {
+  filter: drop-shadow(0 0 2px rgba(0, 0, 0, 0.3));
+}
+
+.tree-node-group circle {
+  transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.tree-node-group text {
+  font-kerning: auto;
+  font-feature-settings: "kern" 1, "liga" 1;
+}
+
+/* Smooth animations for tree nodes */
+@keyframes nodeGlow {
+  0% {
+    filter: drop-shadow(0 0 0px rgba(255, 170, 0, 0.4));
+  }
+  50% {
+    filter: drop-shadow(0 0 8px rgba(255, 170, 0, 0.6));
+  }
+  100% {
+    filter: drop-shadow(0 0 0px rgba(255, 170, 0, 0.4));
+  }
+}
+
+@keyframes linkPulse {
+  0%, 100% {
+    opacity: 0.65;
+    filter: drop-shadow(0 0 0px rgba(0, 210, 255, 0.4));
+  }
+  50% {
+    opacity: 0.9;
+    filter: drop-shadow(0 0 4px rgba(0, 210, 255, 0.6));
+  }
+}
+
+/* Tree container enhanced styles */
+.tree-visualization-container {
+  background: linear-gradient(135deg, rgba(5, 5, 7, 0.8) 0%, rgba(13, 15, 22, 0.6) 100%);
+  box-shadow: 
+    0 0 20px rgba(0, 210, 255, 0.1), 
+    inset 0 0 30px rgba(0, 210, 255, 0.02),
+    inset 0 0 100px rgba(0, 0, 0, 0.1);
+  border: 1px solid rgba(0, 210, 255, 0.2);
+  border-radius: 8px;
+  overflow: hidden;
+  position: relative;
+}
+
+/* SVG elements within tree */
+.tree-visualization-container svg {
+  width: 100%;
+  height: 100%;
+  filter: contrast(1.05) brightness(1.02);
+}
+
+/* Soft focus effect on background nodes during search */
+.tree-visualization-container.searching .tree-node-group circle {
+  opacity: 0.4;
+  filter: blur(0.5px);
+}
+
+.tree-visualization-container.searching .tree-node-group.active circle {
+  opacity: 1;
+  filter: blur(0px);
+}
+
+/* Responsive tree sizing */
+@media (max-width: 768px) {
+  .tree-visualization-container {
+    min-height: 200px;
+  }
+}
+
+@media (min-width: 1024px) {
+  .tree-visualization-container {
+    box-shadow: 
+      0 0 30px rgba(0, 210, 255, 0.15), 
+      inset 0 0 40px rgba(0, 210, 255, 0.03),
+      inset 0 0 120px rgba(0, 0, 0, 0.15);
+  }
+}
