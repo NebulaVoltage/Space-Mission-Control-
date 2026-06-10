@@ -92,7 +92,7 @@ export default function GridCanvas({
   }, [snapshot, hoveredCell, drawForeground]);
 
   // Background rendering: Static grid lines + Obstacles + Terrain Weights
-  const drawBackground = () => {
+  function drawBackground() {
     const canvas = canvasBgRef.current;
     const camera = cameraRef.current;
     if (!canvas || !camera) return;
@@ -173,7 +173,7 @@ export default function GridCanvas({
   };
 
   // Foreground rendering: Dynamic states + Start/Goal + Path + Hover indicator + Pulsing glows
-  const drawForeground = () => {
+  function drawForeground() {
     const canvas = canvasFgRef.current;
     const camera = cameraRef.current;
     if (!canvas || !camera) return;
