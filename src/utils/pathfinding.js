@@ -109,7 +109,8 @@ export function runBFS(grid, startNode, targetNode) {
     path,
     pathCost,
     computeCycles: computeCycles * 3, // scale for cool telemetry readout
-    pathFound
+    pathFound,
+    parentMap
   };
 }
 
@@ -179,7 +180,8 @@ export function runDFS(grid, startNode, targetNode) {
     path,
     pathCost,
     computeCycles: computeCycles * 2,
-    pathFound
+    pathFound,
+    parentMap
   };
 }
 
@@ -284,7 +286,8 @@ export function runDijkstra(grid, startNode, targetNode) {
     path,
     pathCost,
     computeCycles: computeCycles * 5, // higher cost search
-    pathFound
+    pathFound,
+    parentMap
   };
 }
 
@@ -386,6 +389,7 @@ export function runAStar(grid, startNode, targetNode) {
     path,
     pathCost,
     computeCycles: computeCycles * 4,
-    pathFound
+    pathFound,
+    parentMap
   };
 }
