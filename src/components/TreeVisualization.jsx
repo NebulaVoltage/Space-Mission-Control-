@@ -1,151 +1,152 @@
-import { useEffect, useState, memo } from 'react';
-import * as d3 from 'd3-hierarchy';
+import { useMemo, useState, useCallback, memo } from 'react';
+import Tree from 'react-d3-tree';
 
-const TreeVisualization = memo(({ runResult, startNode }) => {
-  const [layout, setLayout] = useState({ nodes: [], links: [] });
+const TreeVisualization = memo(({ runResult, startNode, isFullscreen = false, isRunning = false }) => {
+  const [translate, setTranslate] = useState({ x: 150, y: 20 });
 
-  useEffect(() => {
-    if (!runResult || !runResult.parentMap || !startNode) {
-      setLayout({ nodes: [], links: [] });
-      return;
+  // Dynamically center the tree horizontal origin inside the SVG container
+  const containerRef = useCallback((containerNode) => {
+    if (containerNode !== null) {
+      const { width } = containerNode.getBoundingClientRect();
+      setTranslate({ x: width / 2, y: isFullscreen ? 60 : 30 });
     }
+  }, [isFullscreen]);
 
-    // 1. Build hierarchical data structure
-    const startKey = `${startNode.row},${startNode.col}`;
-    const nodeMap = {};
+  // Construct hierarchical node tree from pathfinding visitedNodesInOrder and parentMap
+  const treeData = useMemo(() => {
+    if (!runResult || !runResult.visitedNodesInOrder || !runResult.parentMap || !startNode) return null;
     
-    // Initialize map
-    runResult.visitedNodesInOrder.forEach(node => {
+    const { visitedNodesInOrder, parentMap } = runResult;
+    const startKey = `${startNode.row},${startNode.col}`;
+    const nodeMap = new Map();
+    
+    // Explicitly add start node as the root of the search tree
+    nodeMap.set(startKey, { 
+      name: `🚀 START (${startNode.row}, ${startNode.col})`,
+      key: startKey,
+      children: [] 
+    });
+
+    // Initialize all visited nodes in the map
+    visitedNodesInOrder.forEach(node => {
       const key = `${node.row},${node.col}`;
-      nodeMap[key] = { id: key, children: [] };
-    });
-    // Add start and target nodes if they are in parentMap
-    runResult.parentMap.forEach((parent, childKey) => {
-      if (!nodeMap[childKey]) nodeMap[childKey] = { id: childKey, children: [] };
-      if (parent) {
-        const parentKey = `${parent.row},${parent.col}`;
-        if (!nodeMap[parentKey]) nodeMap[parentKey] = { id: parentKey, children: [] };
-      }
-    });
-
-    // Link children
-    runResult.parentMap.forEach((parent, childKey) => {
-      if (parent) {
-        const parentKey = `${parent.row},${parent.col}`;
-        nodeMap[parentKey].children.push(nodeMap[childKey]);
-      }
-    });
-
-    const rootData = nodeMap[startKey];
-    if (!rootData) return;
-
-    // 2. Compute D3 Tree Layout
-    try {
-      const root = d3.hierarchy(rootData);
-      
-      // We'll dynamically adjust width/height based on node count
-      const nodeCount = runResult.visitedNodesInOrder.length;
-      const width = Math.max(800, nodeCount * 3);
-      const height = Math.max(300, root.height * 40 + 100);
-
-      const treeLayout = d3.tree().size([width, height - 60]);
-      treeLayout(root);
-
-      const links = root.links();
-      const nodes = root.descendants();
-
-      setLayout({ nodes, links, width, height });
-      
-      // Reset DOM visibility when new layout mounts
-      requestAnimationFrame(() => {
-        document.querySelectorAll('.tree-node, .tree-link').forEach(el => {
-          el.style.opacity = '0';
-          el.style.stroke = 'rgba(255, 255, 255, 0.1)';
-        });
-        // Reveal start node immediately
-        const startEl = document.getElementById(`tree-node-${startKey}`);
-        if (startEl) startEl.style.opacity = '1';
+      nodeMap.set(key, { 
+        name: `(${node.row}, ${node.col})`,
+        key: key,
+        children: [] 
       });
-    } catch (e) {
-      console.error("Tree layout error:", e);
-    }
+    });
+
+    const root = nodeMap.get(startKey);
+    
+    // Wire up parent-child relationships
+    visitedNodesInOrder.forEach(node => {
+      const key = `${node.row},${node.col}`;
+      const parentNode = parentMap.get(key);
+      
+      if (parentNode) {
+        const parentKey = `${parentNode.row},${parentNode.col}`;
+        if (nodeMap.has(parentKey)) {
+          nodeMap.get(parentKey).children.push(nodeMap.get(key));
+        }
+      }
+    });
+
+    return root || { name: 'Awaiting' };
   }, [runResult, startNode]);
 
-  if (!runResult || layout.nodes.length === 0) {
+  // Custom node renderer that injects the HTML ID matching what the simulator will animate
+  const renderCustomNode = useCallback(({ nodeDatum, toggleNode }) => {
+    const isStart = nodeDatum.key === `${startNode.row},${startNode.col}`;
+    const radius = isFullscreen ? 7 : 4.5;
+    
     return (
-      <div className="w-full h-full flex flex-col items-center justify-center text-slate-500 font-cyber-mono text-xs p-4 text-center">
-        <div className="animate-pulse w-12 h-12 mb-4 border border-slate-700 rounded-full flex items-center justify-center">
-           <div className="w-2 h-2 bg-slate-600 rounded-full" />
-        </div>
-        <span>AWAITING MISSION TELEMETRY...<br/>RUN DISPATCH TO GENERATE SEARCH TREE</span>
+      <g className="tree-node-group">
+        <circle
+          id={`tree-node-${nodeDatum.key}`}
+          r={radius}
+          fill={isStart ? '#ffaa00' : '#00d2ff'}
+          stroke={isStart ? '#ffffff' : 'rgba(0, 210, 255, 0.4)'}
+          strokeWidth={1.5}
+          onClick={toggleNode}
+          style={{
+            transition: 'all 0.3s ease',
+            opacity: isRunning ? 0.2 : 1, // Dim nodes initially during running animation
+            cursor: 'pointer'
+          }}
+        />
+        <text
+          fill="#ffffff"
+          stroke="none"
+          x={isFullscreen ? 12 : 8}
+          y={isFullscreen ? 4 : 3}
+          className="rd3t-label__title"
+          style={{
+            fontFamily: '"JetBrains Mono", monospace',
+            fontSize: isFullscreen ? '10px' : '7px',
+            pointerEvents: 'none',
+            opacity: isRunning ? 0.3 : 0.85,
+            textShadow: '0 0 4px rgba(0, 0, 0, 0.9)'
+          }}
+        >
+          {nodeDatum.name}
+        </text>
+      </g>
+    );
+  }, [startNode, isFullscreen, isRunning]);
+
+  // Custom link renderer to draw diagonals and assign IDs for animation
+  const renderCustomLink = useCallback(({ linkData }) => {
+    const { source, target } = linkData;
+    const x1 = source.x;
+    const y1 = source.y;
+    const x2 = target.x;
+    const y2 = target.y;
+    
+    // Diagonal Cubic Bezier path
+    const pathD = `M${x1},${y1}C${x1},${(y1 + y2) / 2} ${x2},${(y1 + y2) / 2} ${x2},${y2}`;
+    
+    return (
+      <path
+        id={`tree-link-${target.data.key}`}
+        d={pathD}
+        fill="none"
+        stroke="rgba(0, 210, 255, 0.3)"
+        strokeWidth={isFullscreen ? 1.5 : 1}
+        style={{
+          transition: 'all 0.3s ease',
+          opacity: isRunning ? 0.15 : 0.8
+        }}
+      />
+    );
+  }, [isFullscreen, isRunning]);
+
+  if (!treeData) {
+    return (
+      <div className="w-full h-full flex items-center justify-center font-cyber-mono text-slate-500 text-xs tracking-wider">
+        [NO TELEMETRY VECTOR DATA]
       </div>
     );
   }
 
-  // Calculate SVG ViewBox to center the tree
-  const viewBox = `0 -30 ${layout.width} ${layout.height}`;
-
   return (
-    <div className="w-full h-full overflow-hidden relative bg-[#030509] rounded-lg shadow-inner border border-cyber-gray-light">
-      <div className="absolute top-2 left-3 z-10 text-[10px] font-cyber-header text-neon-cyan/50 tracking-widest">
-        ALGORITHMIC BRANCHING VECTOR
-      </div>
-      
-      {/* We use a large SVG that scales to fit the container. No scrolling to keep it sleek. */}
-      <svg 
-        width="100%" 
-        height="100%" 
-        viewBox={viewBox} 
-        preserveAspectRatio="xMidYMid meet"
-        className="pt-6"
-      >
-        <g>
-          {/* Render Links */}
-          {layout.links.map((link, i) => {
-            const targetId = link.target.data.id;
-            return (
-              <line
-                key={`link-${i}`}
-                id={`tree-link-${targetId}`}
-                className="tree-link transition-opacity duration-300"
-                x1={link.source.x}
-                y1={link.source.y}
-                x2={link.target.x}
-                y2={link.target.y}
-                stroke="rgba(255, 255, 255, 0.1)"
-                strokeWidth="1.5"
-                opacity="0"
-              />
-            );
-          })}
-          
-          {/* Render Nodes */}
-          {layout.nodes.map((node, i) => {
-            const id = node.data.id;
-            const isStart = id === `${startNode.row},${startNode.col}`;
-            
-            return (
-              <g 
-                key={`node-${i}`} 
-                id={`tree-node-${id}`} 
-                className="tree-node transition-all duration-300"
-                transform={`translate(${node.x},${node.y})`}
-                opacity="0"
-              >
-                <circle 
-                  r={isStart ? 6 : 3.5} 
-                  fill={isStart ? "#00e5ff" : "#121826"} 
-                  stroke={isStart ? "#fff" : "#00e5ff"} 
-                  strokeWidth="1.5"
-                  className={isStart ? "shadow-[0_0_10px_#00e5ff]" : ""}
-                />
-              </g>
-            );
-          })}
-        </g>
-      </svg>
+    <div ref={containerRef} className="w-full h-full relative" style={{ minHeight: isFullscreen ? '100%' : '260px' }}>
+      <Tree 
+        data={treeData} 
+        orientation="vertical"
+        translate={translate}
+        zoomable={true}
+        collapsible={true}
+        initialDepth={isFullscreen ? 100 : 1}
+        transitionDuration={400}
+        nodeSize={isFullscreen ? { x: 75, y: 90 } : { x: 40, y: 55 }}
+        renderCustomNodeElement={renderCustomNode}
+        renderCustomLinkElement={renderCustomLink}
+      />
     </div>
   );
 });
+
+TreeVisualization.displayName = 'TreeVisualization';
 
 export default TreeVisualization;

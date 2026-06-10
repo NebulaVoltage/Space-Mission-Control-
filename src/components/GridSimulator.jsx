@@ -1,5 +1,6 @@
 import { useState, useRef, useCallback } from 'react';
-import { Play, Settings, Info, Building2, Clock, Eraser } from 'lucide-react';
+import { Play, Settings, Info, Building2, Clock, Eraser, Maximize2, X } from 'lucide-react';
+import { AnimatePresence, motion } from 'framer-motion';
 import { runBFS, runDFS, runDijkstra, runAStar } from '../utils/pathfinding';
 import TreeVisualization from './TreeVisualization';
 
@@ -80,6 +81,7 @@ export default function GridSimulator() {
   const [isRunning, setIsRunning] = useState(false);
   
   const [runResult, setRunResult] = useState(null); // For Tree Visualization
+  const [isTreeFullscreen, setIsTreeFullscreen] = useState(false);
   
   const isRunningRef = useRef(false);
   const timeoutRef = useRef(null);
@@ -217,9 +219,20 @@ export default function GridSimulator() {
     setDraggingNode(null);
   }, []);
 
-  const saveTelemetryLog = () => {
-    // logs removed
-    // No logs state anymore
+  const saveTelemetryLog = async (algName, pathFound, exploredCount, cost) => {
+    let efficiencyScore = 0;
+    if (pathFound && exploredCount > 0) {
+      efficiencyScore = Math.min(100, Math.max(1, Math.round((cost / exploredCount) * 100)));
+    }
+    try {
+      await fetch('http://localhost:5000/api/telemetry', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ algorithm: algName, pathFound: pathFound ? 'Yes' : 'No', nodesExplored: exploredCount, pathCost: cost, efficiencyScore })
+      });
+    } catch (e) {
+      console.error("Telemetry server offline:", e);
+    }
   };
 
   const launchSimulation = () => {
@@ -265,7 +278,10 @@ export default function GridSimulator() {
           const treeNode = document.getElementById(`tree-node-${key}`);
           if (treeNode) treeNode.style.opacity = '1';
           const treeLink = document.getElementById(`tree-link-${key}`);
-          if (treeLink) treeLink.style.opacity = '1';
+          if (treeLink) {
+            treeLink.style.opacity = '1';
+            treeLink.style.strokeDashoffset = '0';
+          }
         }
 
         setNodesExplored(Math.min(visitedNodesInOrder.length, index + batchSize));
@@ -304,14 +320,14 @@ export default function GridSimulator() {
             } else {
               setPathCost(finalCost);
               setIsRunning(false);
-              saveTelemetryLog();
+              saveTelemetryLog(algorithm, true, visitedNodesInOrder.length, finalCost);
             }
           };
           animatePath();
         } else {
           setPathCost(0);
           setIsRunning(false);
-          saveTelemetryLog();
+          saveTelemetryLog(algorithm, false, visitedNodesInOrder.length, 0);
         }
       }
     };
@@ -432,8 +448,11 @@ export default function GridSimulator() {
         </div>
         
         {/* Real-time Tree Visualization Panel */}
-        <div className="bg-cyber-gray-dark border border-cyber-gray-light p-2 relative shadow-xl h-[300px] flex flex-col">
-          <TreeVisualization runResult={runResult} startNode={startNode} />
+        <div className="bg-cyber-gray-dark border border-cyber-gray-light p-2 relative shadow-xl h-[300px] flex flex-col group cursor-pointer" onClick={() => runResult && setIsTreeFullscreen(true)}>
+          <div className="absolute top-2 right-2 z-20 text-slate-500 group-hover:text-neon-cyan transition-colors">
+            <Maximize2 className="w-4 h-4" />
+          </div>
+          <TreeVisualization runResult={runResult} startNode={startNode} isRunning={isRunning} />
         </div>
         
       </section>
@@ -491,8 +510,8 @@ export default function GridSimulator() {
           <div className="grid grid-cols-4 gap-2 text-[10px] font-cyber-mono text-slate-400 bg-cyber-black p-2 rounded border border-cyber-gray-light text-center">
             <div className="flex items-center justify-center gap-1.5"><span className="w-3 h-3 block border border-neon-cyan bg-neon-cyan/20"></span> TX HUB</div>
             <div className="flex items-center justify-center gap-1.5"><span className="w-3 h-3 block border border-neon-amber bg-neon-amber/20"></span> RX PROBE</div>
-            <div className="flex items-center justify-center gap-1.5"><span className="w-3 h-3 block border border-[#ff6d00] bg-[#1a1515] bg-[repeating-linear-gradient(45deg,transparent,transparent_2px,#ff6d00_2px,#ff6d00_3px)]"></span> CRATERS (INF)</div>
-            <div className="flex items-center justify-center gap-1.5"><span className="w-3 h-3 block border border-[rgba(255,179,0,0.4)] bg-[#1a1815] bg-[repeating-linear-gradient(-45deg,transparent,transparent_2px,rgba(255,179,0,0.15)_2px,rgba(255,179,0,0.15)_4px)]"></span> ROUGH (3x)</div>
+            <div className="flex items-center justify-center gap-1.5"><span className="w-3 h-3 block border border-neon-red bg-neon-red/15 bg-[repeating-linear-gradient(45deg,transparent,transparent_2px,#ff3333_2px,#ff3333_3px)]"></span> CRATERS (INF)</div>
+            <div className="flex items-center justify-center gap-1.5"><span className="w-3 h-3 block border border-neon-amber bg-neon-amber/10 bg-[repeating-linear-gradient(-45deg,transparent,transparent_2px,#ffaa00_2px,#ffaa00_3px)]"></span> ROUGH (3x)</div>
           </div>
         </div>
 
@@ -510,6 +529,48 @@ export default function GridSimulator() {
           ))}
         </section>
       </section>
+
+      {/* Fullscreen Tree Modal */}
+      <AnimatePresence>
+        {isTreeFullscreen && (
+          <motion.div 
+            initial={{ opacity: 0 }} 
+            animate={{ opacity: 1 }} 
+            exit={{ opacity: 0 }} 
+            className="fixed inset-0 z-50 bg-cyber-black/90 backdrop-blur-sm p-4 md:p-8 flex items-center justify-center"
+          >
+            <div className="w-full h-full bg-cyber-gray-dark border border-neon-cyan rounded-lg shadow-[0_0_50px_rgba(0,229,255,0.15)] flex flex-col md:flex-row relative overflow-hidden">
+              <button 
+                onClick={() => setIsTreeFullscreen(false)}
+                className="absolute top-4 right-4 z-50 text-slate-400 hover:text-white bg-cyber-black p-2 rounded-full border border-slate-700 cursor-pointer"
+              >
+                <X className="w-6 h-6" />
+              </button>
+              
+              <div className="w-full md:w-3/4 h-full relative p-4">
+                 <h2 className="text-xl font-cyber-header text-neon-cyan mb-2 border-b border-cyber-gray-light pb-2">FULL SPECTRUM ALGORITHM BRANCHING</h2>
+                 <div className="w-full h-[calc(100%-3rem)] bg-cyber-black rounded border border-cyber-gray-light">
+                   <TreeVisualization runResult={runResult} startNode={startNode} isFullscreen={true} isRunning={isRunning} />
+                 </div>
+              </div>
+              
+              <div className="w-full md:w-1/4 h-full border-l border-cyber-gray-light bg-cyber-black/50 p-4 flex flex-col">
+                <h3 className="font-cyber-header text-sm text-slate-200 mb-4 tracking-widest border-b border-cyber-gray-light pb-2">OPERATIONS LOG</h3>
+                <div className="flex-grow overflow-y-auto pr-2 font-cyber-mono text-xs flex flex-col gap-2 relative">
+                  {/* We dynamically append operation logs here. For visual flair, we map the first 100 explored nodes if present. */}
+                  {runResult && runResult.visitedNodesInOrder.slice(0, nodesExplored).map((node, i) => (
+                    <div key={i} className="bg-cyber-gray-dark p-2 border-l-2 border-neon-cyan text-slate-300">
+                      <span className="text-neon-cyan">[{String(i).padStart(4, '0')}]</span> EVALUATING VECTOR: ({node.row}, {node.col})
+                    </div>
+                  )).reverse()}
+                  {nodesExplored === 0 && <div className="text-slate-500 text-center mt-10">AWAITING MISSION DATA...</div>}
+                </div>
+              </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
     </div>
   );
 }
