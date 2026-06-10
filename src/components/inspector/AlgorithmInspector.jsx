@@ -1,4 +1,4 @@
-import { Search, CheckCircle, Layers, Route, AlertCircle, TrendingUp, GitPullRequest, Settings, HelpCircle, HardDrive } from 'lucide-react';
+import { Search, CheckCircle, Layers, Route, AlertCircle, TrendingUp, GitPullRequest, Settings, HelpCircle, HardDrive, Clock } from 'lucide-react';
 import { AlgorithmName, SimStatus } from '../../engine/eventTypes.js';
 
 export default function AlgorithmInspector({ snapshot }) {
@@ -9,9 +9,17 @@ export default function AlgorithmInspector({ snapshot }) {
     metrics = {},
     status = SimStatus.IDLE,
     pathFound,
+    computationTime = 0,
   } = snapshot;
 
   const isComplete = status === SimStatus.COMPLETE;
+
+  // Format computation execution time
+  const displayCompTime = computationTime === 0
+    ? '0.00 ms'
+    : computationTime < 0.01
+    ? '< 0.01 ms'
+    : `${computationTime.toFixed(3)} ms`;
 
   // Build standard metrics list
   const commonMetrics = [
@@ -43,7 +51,22 @@ export default function AlgorithmInspector({ snapshot }) {
       color: 'text-neon-amber border-neon-amber/20 bg-neon-amber/5',
       desc: 'Total cumulative path edge transit weight.',
     },
+    {
+      label: 'COMPUTATION TIME',
+      value: displayCompTime,
+      icon: Clock,
+      color: 'text-white border-cyber-gray-light bg-cyber-black/35',
+      desc: 'Exact CPU execution time of the pathfinding algorithm.',
+    },
+    {
+      label: 'TRANSMISSION SPEED',
+      value: `${snapshot.speed || 0} Hz`,
+      icon: Settings,
+      color: 'text-neon-cyan border-neon-cyan/20 bg-cyber-black/35',
+      desc: 'Current simulation step processing frequency.',
+    },
   ];
+
 
   // Build algorithm-specific metrics
   const getAlgoMetrics = () => {

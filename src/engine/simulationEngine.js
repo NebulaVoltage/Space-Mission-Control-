@@ -218,6 +218,7 @@ export class SimulationEngine {
     this._goalKey = null;
     this._grid = null;
     this._lastFrameTime = 0;
+    this.computationTime = 0;
   }
 
   /**
@@ -235,6 +236,7 @@ export class SimulationEngine {
     if (!algDef) throw new Error(`Unknown algorithm: ${algorithmName}`);
 
     // Run generator to completion, collecting all events
+    const t0 = performance.now();
     const gen = algDef.generator(grid, start, goal, options);
     this.events = [];
     let result = gen.next();
@@ -242,6 +244,8 @@ export class SimulationEngine {
       this.events.push(result.value);
       result = gen.next();
     }
+    const t1 = performance.now();
+    this.computationTime = t1 - t0;
 
     this.currentStep = -1;
     this.status = SimStatus.PAUSED;
@@ -342,6 +346,7 @@ export class SimulationEngine {
         },
         path: null, pathCost: 0, pathFound: null,
         currentEvent: null, events: this.events, explanation: null,
+        computationTime: 0,
       };
     }
 
@@ -371,6 +376,7 @@ export class SimulationEngine {
         totalSteps: this.events.length,
         speed: this.speed,
         events: this.events,
+        computationTime: this.computationTime,
       };
     }
     return this._snapshot;
@@ -397,6 +403,7 @@ export class SimulationEngine {
     this.status = SimStatus.IDLE;
     this.algorithm = null;
     this._snapshot = null;
+    this.computationTime = 0;
   }
 
   // ── Internal ────────────────────────────────────────────────
