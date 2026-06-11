@@ -21,12 +21,12 @@ export default function SimulationControls({
   const displayTotal = totalSteps;
 
   const statusLabel = isPlaying ? 'RUNNING' : isComplete ? 'COMPLETE' : status === SimStatus.PAUSED ? 'PAUSED' : 'STANDBY';
-  const statusColor = isPlaying ? '#00D1B2' : isComplete ? '#22C55E' : status === SimStatus.PAUSED ? '#FF9A3C' : '#5C5650';
+    const statusColor = isPlaying ? '#3ABEFF' : isComplete ? '#00D1B2' : status === SimStatus.PAUSED ? '#6D5DFF' : '#44556B';
 
   return (
     <div style={{
-      background: '#111111',
-      border: '1px solid #2E2E2E',
+      background: '#0D1321',
+      border: '1px solid #1E2D45',
       borderRadius: 2,
       padding: '14px 16px',
       display: 'flex',
@@ -121,15 +121,16 @@ export default function SimulationControls({
         </button>
 
         {/* Play/Pause — coral primary action */}
+        {/* Play/Pause — cosmic cyan primary action */}
         <button
           onClick={isPlaying ? onPause : onPlay}
           disabled={isComplete && !isPlaying}
           title={isPlaying ? 'Pause' : 'Play'}
           style={{
             width: 38, height: 38, display: 'flex', alignItems: 'center', justifyContent: 'center',
-            background: isPlaying ? 'rgba(255,122,0,0.12)' : '#FF7A00',
-            border: isPlaying ? '1px solid rgba(255,122,0,0.4)' : '1px solid transparent',
-            color: isPlaying ? '#FF7A00' : '#080808',
+            background: isPlaying ? 'rgba(58,190,255,0.10)' : '#3ABEFF',
+            border: isPlaying ? '1px solid rgba(58,190,255,0.4)' : '1px solid transparent',
+            color: isPlaying ? '#3ABEFF' : '#05060A',
             cursor: 'pointer', borderRadius: 2,
             transition: 'all 0.12s',
             opacity: (isComplete && !isPlaying) ? 0.25 : 1,
@@ -147,11 +148,11 @@ export default function SimulationControls({
           style={{
             width: 34, height: 34, display: 'flex', alignItems: 'center', justifyContent: 'center',
             background: 'transparent', border: '1px solid transparent',
-            color: '#5C5650', cursor: 'pointer', borderRadius: 2,
+            color: '#44556B', cursor: 'pointer', borderRadius: 2,
             transition: 'all 0.12s', opacity: (isPlaying || isComplete || displayTotal === 0) ? 0.25 : 1,
           }}
-          onMouseEnter={e => { if (!e.currentTarget.disabled) { e.currentTarget.style.color = '#F5F1E8'; e.currentTarget.style.borderColor = '#2E2E2E'; } }}
-          onMouseLeave={e => { e.currentTarget.style.color = '#5C5650'; e.currentTarget.style.borderColor = 'transparent'; }}
+          onMouseEnter={e => { if (!e.currentTarget.disabled) { e.currentTarget.style.color = '#F8FAFC'; e.currentTarget.style.borderColor = '#1E2D45'; } }}
+          onMouseLeave={e => { e.currentTarget.style.color = '#44556B'; e.currentTarget.style.borderColor = 'transparent'; }}
         >
           <StepForward size={14} />
         </button>
@@ -167,8 +168,8 @@ export default function SimulationControls({
             fontSize: '0.5rem', letterSpacing: '0.1em',
             textTransform: 'uppercase', marginBottom: 5,
           }}>
-            <span style={{ color: '#5C5650' }}>Speed</span>
-            <span style={{ color: '#FF7A00', fontWeight: 600 }}>{speed} Hz</span>
+            <span style={{ color: '#44556B' }}>Speed</span>
+            <span style={{ color: '#3ABEFF', fontWeight: 600 }}>{speed} Hz</span>
           </div>
           <input
             type="range" min={1} max={100} value={speed}

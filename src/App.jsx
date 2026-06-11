@@ -39,6 +39,75 @@ const createInitialGrid = () => {
 };
 
 /* ════════════════════════════════════════════════════════
+   SCANNER SECTOR OVERLAY — atmospheric decorations
+   These are CSS-only overlays, zero canvas impact
+════════════════════════════════════════════════════════ */
+const ScannerSectorOverlay = () => (
+  <div style={{
+    position: 'absolute', inset: 0, pointerEvents: 'none', zIndex: 2,
+    overflow: 'hidden',
+  }}>
+    {/* Sector divider lines */}
+    <div style={{
+      position: 'absolute', top: 0, bottom: 0, left: '33.3%',
+      borderLeft: '1px solid rgba(58,190,255,0.04)',
+    }} />
+    <div style={{
+      position: 'absolute', top: 0, bottom: 0, left: '66.6%',
+      borderLeft: '1px solid rgba(58,190,255,0.04)',
+    }} />
+    <div style={{
+      position: 'absolute', left: 0, right: 0, top: '50%',
+      borderTop: '1px solid rgba(58,190,255,0.03)',
+    }} />
+
+    {/* Orbital rings — centered */}
+    <div style={{
+      position: 'absolute', top: '50%', left: '50%',
+      transform: 'translate(-50%, -50%)',
+      width: '55%', aspectRatio: '1',
+      border: '1px solid rgba(58,190,255,0.055)',
+      borderRadius: '50%',
+    }} />
+    <div style={{
+      position: 'absolute', top: '50%', left: '50%',
+      transform: 'translate(-50%, -50%)',
+      width: '28%', aspectRatio: '1',
+      border: '1px solid rgba(109,93,255,0.05)',
+      borderRadius: '50%',
+    }} />
+
+    {/* Sector labels — corner typography */}
+    {[
+      { top: 8, left: 12, label: 'ALPHA' },
+      { top: 8, right: 12, label: 'BETA' },
+      { bottom: 8, left: 12, label: 'GAMMA' },
+      { bottom: 8, right: 12, label: 'DELTA' },
+    ].map(({ label, ...pos }) => (
+      <div key={label} style={{
+        position: 'absolute', ...pos,
+        fontFamily: '"JetBrains Mono", monospace',
+        fontSize: '0.4375rem', letterSpacing: '0.18em',
+        color: 'rgba(58,190,255,0.25)',
+        textTransform: 'uppercase',
+      }}>
+        {label}
+      </div>
+    ))}
+
+    {/* Transmission path lines */}
+    <svg style={{ position: 'absolute', inset: 0, width: '100%', height: '100%' }}
+      preserveAspectRatio="none">
+      {/* Diagonal corner to corner — ultra faint */}
+      <line x1="0%" y1="0%" x2="100%" y2="100%"
+        stroke="rgba(58,190,255,0.025)" strokeWidth="0.5" />
+      <line x1="100%" y1="0%" x2="0%" y2="100%"
+        stroke="rgba(58,190,255,0.025)" strokeWidth="0.5" />
+    </svg>
+  </div>
+);
+
+/* ════════════════════════════════════════════════════════
    MISSION CONTROL — main application interface
 ════════════════════════════════════════════════════════ */
 function MissionControl({ initialAlgorithm = AlgorithmName.ASTAR }) {
@@ -53,7 +122,7 @@ function MissionControl({ initialAlgorithm = AlgorithmName.ASTAR }) {
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(true);
   const [utcTime, setUtcTime] = useState('');
 
-  // UTC clock
+  // UTC mission clock
   useEffect(() => {
     const tick = () => {
       const d = new Date();
@@ -164,12 +233,12 @@ function MissionControl({ initialAlgorithm = AlgorithmName.ASTAR }) {
     const nextGrid = createInitialGrid();
     if (presetId === 'orbital-blockades') {
       [
-        { rStart:2,rEnd:5,cStart:3,cEnd:6 }, { rStart:2,rEnd:5,cStart:12,cEnd:15 },
-        { rStart:2,rEnd:5,cStart:20,cEnd:23 }, { rStart:2,rEnd:5,cStart:28,cEnd:31 },
-        { rStart:8,rEnd:11,cStart:8,cEnd:11 }, { rStart:8,rEnd:11,cStart:16,cEnd:19 },
-        { rStart:8,rEnd:11,cStart:24,cEnd:27 }, { rStart:14,rEnd:17,cStart:4,cEnd:7 },
-        { rStart:14,rEnd:17,cStart:12,cEnd:15 }, { rStart:14,rEnd:17,cStart:20,cEnd:23 },
-        { rStart:14,rEnd:17,cStart:28,cEnd:31 },
+        {rStart:2,rEnd:5,cStart:3,cEnd:6},{rStart:2,rEnd:5,cStart:12,cEnd:15},
+        {rStart:2,rEnd:5,cStart:20,cEnd:23},{rStart:2,rEnd:5,cStart:28,cEnd:31},
+        {rStart:8,rEnd:11,cStart:8,cEnd:11},{rStart:8,rEnd:11,cStart:16,cEnd:19},
+        {rStart:8,rEnd:11,cStart:24,cEnd:27},{rStart:14,rEnd:17,cStart:4,cEnd:7},
+        {rStart:14,rEnd:17,cStart:12,cEnd:15},{rStart:14,rEnd:17,cStart:20,cEnd:23},
+        {rStart:14,rEnd:17,cStart:28,cEnd:31},
       ].forEach(b => {
         for (let r = b.rStart; r <= b.rEnd; r++)
           for (let c = b.cStart; c <= b.cEnd; c++)
@@ -182,7 +251,7 @@ function MissionControl({ initialAlgorithm = AlgorithmName.ASTAR }) {
         if (r !== 8 && r !== 9 && r !== 10 && r !== 11) {
           if ((r !== startNode.row || c !== startNode.col) && (r !== goalNode.row || c !== goalNode.col))
             nextGrid[r][c].type = CellType.OBSTACLE;
-        } else { nextGrid[r][c].type = CellType.HEAVY; }
+        } else nextGrid[r][c].type = CellType.HEAVY;
       }
     } else if (presetId === 'nebula-field') {
       for (let r = 0; r < ROWS; r++)
@@ -190,7 +259,7 @@ function MissionControl({ initialAlgorithm = AlgorithmName.ASTAR }) {
           if ((r === startNode.row && c === startNode.col) || (r === goalNode.row && c === goalNode.col)) continue;
           const rand = Math.random();
           if (rand < 0.22) nextGrid[r][c].type = CellType.WEIGHTED;
-          else if (rand < 0.3) nextGrid[r][c].type = CellType.HEAVY;
+          else if (rand < 0.30) nextGrid[r][c].type = CellType.HEAVY;
         }
     }
     setGrid(nextGrid);
@@ -213,97 +282,123 @@ function MissionControl({ initialAlgorithm = AlgorithmName.ASTAR }) {
   }, [snapshot.currentStep, snapshot.events]);
 
   const navItems = [
-    { id: 'scanner',  label: 'Scanner',   icon: LayoutGrid },
-    { id: 'tree',     label: 'Search Tree', icon: GitBranch },
-    { id: 'telemetry',label: 'Telemetry', icon: Database },
+    { id: 'scanner',   label: 'Scanner',    icon: LayoutGrid },
+    { id: 'tree',      label: 'Search Tree', icon: GitBranch },
+    { id: 'telemetry', label: 'Telemetry',   icon: Database },
   ];
 
-  // ── Status color ──
-  const statusColor = snapshot.status === SimStatus.RUNNING ? '#00D1B2'
-    : snapshot.status === SimStatus.COMPLETE ? '#22C55E'
-    : snapshot.status === SimStatus.PAUSED ? '#FF9A3C' : '#5C5650';
+  const statusColor = snapshot.status === SimStatus.RUNNING  ? '#3ABEFF'
+    : snapshot.status === SimStatus.COMPLETE ? '#00D1B2'
+    : snapshot.status === SimStatus.PAUSED   ? '#6D5DFF' : '#44556B';
+
+  const statusLabel = snapshot.status === SimStatus.RUNNING  ? 'COMPUTING'
+    : snapshot.status === SimStatus.COMPLETE ? 'COMPLETE'
+    : snapshot.status === SimStatus.PAUSED   ? 'PAUSED' : 'STANDBY';
+
+  // Algorithm accent color
+  const algoAccent = {
+    [AlgorithmName.BFS]: '#3ABEFF',
+    [AlgorithmName.DFS]: '#6D5DFF',
+    [AlgorithmName.DIJKSTRA]: '#00D1B2',
+    [AlgorithmName.ASTAR]: '#3ABEFF',
+  }[algorithm] || '#3ABEFF';
 
   return (
     <div style={{
       display: 'flex', minHeight: '100vh',
-      background: '#080808', color: '#F5F1E8',
+      background: '#05060A', color: '#F8FAFC',
       fontFamily: '"Inter", sans-serif',
       position: 'relative', overflow: 'hidden',
     }}>
-      {/* Structural grid overlay */}
+      {/* Deep space orbital grid */}
       <div className="orbital-grid" />
+
+      {/* Atmospheric nebula in mission control bg */}
+      <div style={{
+        position: 'fixed', inset: 0, zIndex: 0, pointerEvents: 'none',
+        background: `
+          radial-gradient(ellipse 45% 40% at 80% 20%, rgba(109,93,255,0.04) 0%, transparent 65%),
+          radial-gradient(ellipse 40% 35% at 15% 75%, rgba(58,190,255,0.03) 0%, transparent 60%)
+        `,
+      }} />
 
       {/* ── LEFT SIDEBAR ── */}
       <motion.aside
         layout
-        animate={{ width: isSidebarCollapsed ? 56 : 200 }}
+        animate={{ width: isSidebarCollapsed ? 52 : 196 }}
         transition={{ duration: 0.18, ease: 'easeOut' }}
         style={{
           flexShrink: 0, zIndex: 20,
-          background: '#111111',
-          borderRight: '1px solid #2E2E2E',
+          background: '#0D1321',
+          borderRight: '1px solid #1E2D45',
           display: 'flex', flexDirection: 'column',
           justifyContent: 'space-between',
           overflow: 'hidden', position: 'relative',
         }}
       >
         {/* Sidebar top */}
-        <div style={{ display: 'flex', flexDirection: 'column' }}>
-          {/* Logo */}
+        <div>
+          {/* MCA Logo */}
           <div style={{
             height: 56, display: 'flex', alignItems: 'center',
-            padding: '0 16px', gap: 12,
-            borderBottom: '1px solid #2E2E2E',
+            padding: '0 14px', gap: 10,
+            borderBottom: '1px solid #1E2D45',
           }}>
-            <div style={{
-              width: 24, height: 24, flexShrink: 0,
-              background: '#FF7A00',
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-            }}>
-              <Activity size={12} color="#080808" strokeWidth={2.5} />
-            </div>
+            {/* Orbital logo mark */}
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" style={{ flexShrink: 0 }}>
+              <circle cx="12" cy="12" r="9" stroke="rgba(58,190,255,0.3)" strokeWidth="0.75" strokeDasharray="2.5 3" />
+              <circle cx="12" cy="12" r="5" stroke="#3ABEFF" strokeWidth="0.75" />
+              <circle cx="12" cy="12" r="2" fill="#3ABEFF" />
+              <line x1="12" y1="3" x2="12" y2="7" stroke="rgba(58,190,255,0.5)" strokeWidth="0.75" />
+            </svg>
             {!isSidebarCollapsed && (
-              <span style={{
-                fontFamily: '"Space Grotesk", sans-serif',
-                fontWeight: 700, fontSize: '0.8125rem',
-                letterSpacing: '0.04em', color: '#F5F1E8',
-                whiteSpace: 'nowrap',
-              }}>
-                PATH<span style={{ color: '#FF7A00' }}>FINDER</span>
-              </span>
+              <div>
+                <div style={{
+                  fontFamily: '"Space Grotesk", sans-serif',
+                  fontWeight: 700, fontSize: '0.875rem',
+                  letterSpacing: '0.04em', color: '#F8FAFC',
+                  lineHeight: 1,
+                }}>
+                  MCA
+                </div>
+                <div style={{
+                  fontFamily: '"JetBrains Mono", monospace',
+                  fontSize: '0.375rem', letterSpacing: '0.16em',
+                  color: '#44556B', textTransform: 'uppercase',
+                  whiteSpace: 'nowrap',
+                }}>
+                  Mission Control
+                </div>
+              </div>
             )}
           </div>
 
-          {/* Nav items */}
-          <nav style={{ padding: '12px 8px', display: 'flex', flexDirection: 'column', gap: 4 }}>
+          {/* Nav */}
+          <nav style={{ padding: '10px 6px', display: 'flex', flexDirection: 'column', gap: 2 }}>
             {navItems.map(({ id, label, icon: Icon }) => {
               const active = currentTab === id;
               return (
-                <button
-                  key={id}
-                  onClick={() => setCurrentTab(id)}
+                <button key={id} onClick={() => setCurrentTab(id)}
                   style={{
                     width: '100%', display: 'flex', alignItems: 'center',
-                    gap: 12, padding: isSidebarCollapsed ? '10px 16px' : '10px 12px',
-                    background: active ? 'rgba(255,122,0,0.08)' : 'transparent',
+                    gap: 10, padding: isSidebarCollapsed ? '10px 14px' : '10px 12px',
+                    background: active ? 'rgba(58,190,255,0.07)' : 'transparent',
                     border: 'none',
-                    borderLeft: active ? '2px solid #FF7A00' : '2px solid transparent',
-                    cursor: 'pointer',
-                    transition: 'all 0.12s ease',
+                    borderLeft: active ? '2px solid #3ABEFF' : '2px solid transparent',
+                    cursor: 'pointer', transition: 'all 0.12s',
                   }}
-                  onMouseEnter={e => { if (!active) e.currentTarget.style.background = 'rgba(255,255,255,0.04)'; }}
+                  onMouseEnter={e => { if (!active) e.currentTarget.style.background = 'rgba(248,250,252,0.03)'; }}
                   onMouseLeave={e => { if (!active) e.currentTarget.style.background = 'transparent'; }}
                 >
-                  <Icon size={16}
-                    color={active ? '#FF7A00' : '#5C5650'}
+                  <Icon size={15}
+                    color={active ? '#3ABEFF' : '#44556B'}
                     style={{ flexShrink: 0, transition: 'color 0.12s' }}
                   />
                   {!isSidebarCollapsed && (
                     <span style={{
-                      fontFamily: '"Space Grotesk", sans-serif',
-                      fontWeight: 600, fontSize: '0.75rem',
-                      letterSpacing: '0.06em', textTransform: 'uppercase',
-                      color: active ? '#F5F1E8' : '#5C5650',
+                      fontFamily: '"Space Grotesk", sans-serif', fontWeight: 600,
+                      fontSize: '0.6875rem', letterSpacing: '0.07em',
+                      textTransform: 'uppercase', color: active ? '#F8FAFC' : '#44556B',
                       whiteSpace: 'nowrap', transition: 'color 0.12s',
                     }}>
                       {label}
@@ -316,30 +411,22 @@ function MissionControl({ initialAlgorithm = AlgorithmName.ASTAR }) {
         </div>
 
         {/* Sidebar bottom */}
-        <div style={{
-          borderTop: '1px solid #2E2E2E',
-          padding: '8px',
-          display: 'flex', flexDirection: 'column', gap: 4,
-        }}>
-          <button
-            onClick={() => setIsSidebarCollapsed(p => !p)}
+        <div style={{ borderTop: '1px solid #1E2D45', padding: '6px' }}>
+          <button onClick={() => setIsSidebarCollapsed(p => !p)}
             style={{
               width: '100%', display: 'flex', alignItems: 'center',
-              gap: 12, padding: '10px 12px',
+              gap: 10, padding: '10px 12px',
               background: 'transparent', border: 'none',
-              cursor: 'pointer',
-              color: '#5C5650', transition: 'color 0.12s',
+              cursor: 'pointer', color: '#44556B', transition: 'color 0.12s',
             }}
-            onMouseEnter={e => e.currentTarget.style.color = '#F5F1E8'}
-            onMouseLeave={e => e.currentTarget.style.color = '#5C5650'}
+            onMouseEnter={e => e.currentTarget.style.color = '#F8FAFC'}
+            onMouseLeave={e => e.currentTarget.style.color = '#44556B'}
           >
-            {isSidebarCollapsed
-              ? <ChevronRight size={16} />
-              : <ChevronLeft size={16} />}
+            {isSidebarCollapsed ? <ChevronRight size={14} /> : <ChevronLeft size={14} />}
             {!isSidebarCollapsed && (
               <span style={{
                 fontFamily: '"Space Grotesk", sans-serif', fontWeight: 600,
-                fontSize: '0.6875rem', letterSpacing: '0.08em',
+                fontSize: '0.625rem', letterSpacing: '0.08em',
                 textTransform: 'uppercase', whiteSpace: 'nowrap',
               }}>
                 Collapse
@@ -350,138 +437,115 @@ function MissionControl({ initialAlgorithm = AlgorithmName.ASTAR }) {
       </motion.aside>
 
       {/* ── MAIN WORKSPACE ── */}
-      <main style={{
-        flexGrow: 1, display: 'flex', flexDirection: 'column',
-        minWidth: 0, position: 'relative', zIndex: 10,
-      }}>
+      <main style={{ flexGrow: 1, display: 'flex', flexDirection: 'column', minWidth: 0, position: 'relative', zIndex: 10 }}>
 
         {/* ── TOP BAR ── */}
         <header style={{
           height: 56, display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-          padding: '0 24px',
-          borderBottom: '1px solid #2E2E2E',
-          background: '#111111',
+          padding: '0 24px', borderBottom: '1px solid #1E2D45',
+          background: 'rgba(13,19,33,0.95)',
+          backdropFilter: 'blur(8px)',
           flexShrink: 0,
         }}>
-          {/* Left info */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: 20 }}>
-            {/* Status dot + text */}
+          {/* Left */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+            {/* Status */}
             <div style={{
-              display: 'flex', alignItems: 'center', gap: 8,
-              padding: '5px 12px', border: '1px solid #2E2E2E',
-              background: '#1A1A1A',
+              display: 'flex', alignItems: 'center', gap: 7,
+              padding: '4px 12px', border: `1px solid ${statusColor}30`,
+              background: `${statusColor}0A`,
             }}>
               <span style={{
-                width: 6, height: 6, borderRadius: '50%',
-                background: statusColor,
-                display: 'inline-block',
+                width: 5, height: 5, borderRadius: '50%',
+                background: statusColor, display: 'inline-block',
               }} />
               <span style={{
-                fontFamily: '"JetBrains Mono", monospace',
-                fontSize: '0.625rem', letterSpacing: '0.14em',
-                color: statusColor, textTransform: 'uppercase',
+                fontFamily: '"JetBrains Mono", monospace', fontSize: '0.5625rem',
+                letterSpacing: '0.16em', color: statusColor, textTransform: 'uppercase',
                 fontWeight: 600,
               }}>
-                {snapshot.status === SimStatus.RUNNING ? 'Computing' :
-                 snapshot.status === SimStatus.COMPLETE ? 'Complete' :
-                 snapshot.status === SimStatus.PAUSED ? 'Paused' : 'Standby'}
+                {statusLabel}
               </span>
             </div>
 
-            {/* UTC Clock */}
+            {/* Mission clock */}
             <span style={{
-              fontFamily: '"JetBrains Mono", monospace',
-              fontSize: '0.625rem', letterSpacing: '0.1em',
-              color: '#5C5650', textTransform: 'uppercase',
+              fontFamily: '"JetBrains Mono", monospace', fontSize: '0.5625rem',
+              letterSpacing: '0.1em', color: '#44556B', textTransform: 'uppercase',
             }}>
               {utcTime}
             </span>
 
             {/* Algorithm badge */}
             <div style={{
-              padding: '4px 10px', background: 'rgba(255,122,0,0.08)',
-              border: '1px solid rgba(255,122,0,0.25)',
+              padding: '3px 10px',
+              background: `${algoAccent}10`,
+              border: `1px solid ${algoAccent}28`,
             }}>
               <span style={{
-                fontFamily: '"JetBrains Mono", monospace',
-                fontSize: '0.625rem', letterSpacing: '0.12em',
-                color: '#FF7A00', textTransform: 'uppercase', fontWeight: 600,
+                fontFamily: '"JetBrains Mono", monospace', fontSize: '0.5625rem',
+                letterSpacing: '0.14em', color: algoAccent,
+                textTransform: 'uppercase', fontWeight: 600,
               }}>
                 {algorithm}
               </span>
             </div>
           </div>
 
-          {/* Right info */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-            <span style={{
-              fontFamily: '"JetBrains Mono", monospace',
-              fontSize: '0.625rem', letterSpacing: '0.1em',
-              color: '#5C5650',
-            }}>
-              STEP {snapshot.currentStep === -1 ? '000' : String(snapshot.currentStep + 1).padStart(3, '0')} / {String(snapshot.totalSteps).padStart(3, '0')}
-            </span>
+          {/* Right */}
+          <div style={{
+            fontFamily: '"JetBrains Mono", monospace', fontSize: '0.5625rem',
+            letterSpacing: '0.1em', color: '#253450',
+          }}>
+            STEP {snapshot.currentStep === -1 ? '000' : String(snapshot.currentStep + 1).padStart(3, '0')} / {String(snapshot.totalSteps).padStart(3, '0')}
           </div>
         </header>
 
-        {/* ── CONTENT AREA ── */}
-        <div style={{ flexGrow: 1, padding: '20px', overflowY: 'auto' }}>
+        {/* ── CONTENT ── */}
+        <div style={{ flexGrow: 1, padding: 20, overflowY: 'auto' }}>
           <AnimatePresence mode="wait">
-            <motion.div
-              key={currentTab}
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
+            <motion.div key={currentTab}
+              initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
               transition={{ duration: 0.12 }}
-              style={{ display: 'flex', flexDirection: 'column', gap: 20, minHeight: '100%' }}
+              style={{ display: 'flex', flexDirection: 'column', gap: 18, minHeight: '100%' }}
             >
 
               {/* ── SCANNER TAB ── */}
               {currentTab === 'scanner' && (
-                <div style={{
-                  display: 'grid',
-                  gridTemplateColumns: '1fr 320px',
-                  gap: 20, alignItems: 'start',
-                }}>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 316px', gap: 18, alignItems: 'start' }}>
 
-                  {/* Center — Grid + Controls */}
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
                     {/* Algorithm selector */}
-                    <AlgorithmSelector
-                      selectedAlgorithm={algorithm}
-                      onSelect={setAlgorithm}
-                      disabled={!isInteractive}
-                    />
+                    <AlgorithmSelector selectedAlgorithm={algorithm} onSelect={setAlgorithm} disabled={!isInteractive} />
 
                     {/* Scanner viewport */}
                     <div className="control-module" style={{ padding: 0, overflow: 'hidden' }}>
                       <div className="hud-bracket-tl" /><div className="hud-bracket-tr" />
                       <div className="hud-bracket-bl" /><div className="hud-bracket-br" />
 
+                      {/* Header */}
                       <div style={{
-                        padding: '12px 16px 0',
+                        padding: '10px 14px 9px', borderBottom: '1px solid #1E2D45',
                         display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-                        borderBottom: '1px solid #2E2E2E', marginBottom: 0, paddingBottom: 10,
                       }}>
                         <span style={{
                           fontFamily: '"Space Grotesk", sans-serif', fontWeight: 700,
-                          fontSize: '0.625rem', letterSpacing: '0.14em',
-                          textTransform: 'uppercase', color: '#A09A8E',
+                          fontSize: '0.5625rem', letterSpacing: '0.16em',
+                          textTransform: 'uppercase', color: '#8899AA',
                           display: 'flex', alignItems: 'center', gap: 8,
                         }}>
-                          <span style={{ width: 5, height: 5, borderRadius: '50%', background: '#00D1B2', display: 'inline-block' }} />
+                          <span style={{ width: 4, height: 4, borderRadius: '50%', background: '#3ABEFF', display: 'inline-block' }} />
                           Sector Scanner — {algorithm}
                         </span>
                         <span style={{
-                          fontFamily: '"JetBrains Mono", monospace',
-                          fontSize: '0.5625rem', letterSpacing: '0.1em',
-                          color: '#5C5650',
+                          fontFamily: '"JetBrains Mono", monospace', fontSize: '0.5rem',
+                          letterSpacing: '0.1em', color: '#253450',
                         }}>
-                          {ROWS}×{COLS} GRID
+                          {ROWS}×{COLS}
                         </span>
                       </div>
 
+                      {/* Canvas + overlays */}
                       <div style={{ height: 440, width: '100%', position: 'relative' }}>
                         <GridCanvas
                           grid={grid} snapshot={snapshot}
@@ -490,41 +554,40 @@ function MissionControl({ initialAlgorithm = AlgorithmName.ASTAR }) {
                           onDragStart={handleDragStart} onDragEnd={handleDragEnd}
                           activeBrush={activeBrush} isInteractive={isInteractive}
                         />
+                        {/* Sector overlay decorations */}
+                        <ScannerSectorOverlay />
                       </div>
 
                       {/* Legend */}
                       <div style={{
-                        display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)',
-                        gap: 6, padding: '10px 16px 12px',
-                        borderTop: '1px solid #2E2E2E',
-                        background: '#0D0D0D',
+                        display: 'grid', gridTemplateColumns: 'repeat(5,1fr)',
+                        gap: 4, padding: '8px 14px 10px',
+                        borderTop: '1px solid #1E2D45', background: '#080C15',
                       }}>
                         {[
-                          { color: '#00D1B2', label: 'Start' },
-                          { color: '#FF7A00', label: 'Goal' },
+                          { color: '#00D1B2', label: 'Origin' },
+                          { color: '#3ABEFF', label: 'Target' },
                           { color: '#EF4444', label: 'Obstacle' },
-                          { color: '#F59E0B', label: 'Nebula 3×' },
-                          { color: '#8B5CF6', label: 'Gravity 5×' },
+                          { color: '#6D5DFF', label: 'Nebula 3×' },
+                          { color: '#8B7DFF', label: 'Gravity 5×' },
                         ].map(({ color, label }) => (
                           <div key={label} style={{
                             display: 'flex', alignItems: 'center', gap: 5,
                             fontFamily: '"JetBrains Mono", monospace',
-                            fontSize: '0.5625rem', letterSpacing: '0.06em',
-                            color: '#5C5650', textTransform: 'uppercase',
+                            fontSize: '0.4375rem', letterSpacing: '0.08em',
+                            color: '#44556B', textTransform: 'uppercase',
                           }}>
-                            <span style={{ width: 8, height: 8, borderRadius: 1, background: color, flexShrink: 0, opacity: 0.85 }} />
+                            <span style={{ width: 7, height: 7, borderRadius: 1, background: color, flexShrink: 0, opacity: 0.8 }} />
                             {label}
                           </div>
                         ))}
                       </div>
                     </div>
 
-                    {/* Simulation Controls */}
+                    {/* Controls */}
                     <SimulationControls
-                      status={snapshot.status}
-                      currentStep={snapshot.currentStep}
-                      totalSteps={snapshot.totalSteps}
-                      speed={snapshot.speed}
+                      status={snapshot.status} currentStep={snapshot.currentStep}
+                      totalSteps={snapshot.totalSteps} speed={snapshot.speed}
                       onPlay={handlePlay} onPause={handlePause}
                       onStep={handleStep} onStepBack={handleStepBack}
                       onReset={handleReset} onSpeedChange={handleSpeedChange}
@@ -532,52 +595,40 @@ function MissionControl({ initialAlgorithm = AlgorithmName.ASTAR }) {
 
                     {/* Timeline */}
                     <Timeline
-                      events={snapshot.events}
-                      currentStep={snapshot.currentStep}
-                      totalSteps={snapshot.totalSteps}
-                      onSeek={handleSeek}
+                      events={snapshot.events} currentStep={snapshot.currentStep}
+                      totalSteps={snapshot.totalSteps} onSeek={handleSeek}
                       status={snapshot.status}
                     />
                   </div>
 
-                  {/* Right sidebar — inspector */}
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+                  {/* Right panel */}
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
                     <TerrainEditor
-                      activeBrush={activeBrush}
-                      onBrushChange={setActiveBrush}
+                      activeBrush={activeBrush} onBrushChange={setActiveBrush}
                       onGenerateRandom={handleGenerateRandom}
-                      onLoadPreset={handleLoadPreset}
-                      onClearAll={handleClearAll}
+                      onLoadPreset={handleLoadPreset} onClearAll={handleClearAll}
                       disabled={!isInteractive}
                     />
-
                     <AlgorithmInspector snapshot={snapshot} />
-
                     <DataStructureVisualizer snapshot={snapshot} />
 
-                    {/* Mini Tree Preview */}
-                    <div
-                      className="control-module"
-                      style={{ cursor: 'pointer', minHeight: 200, display: 'flex', flexDirection: 'column' }}
-                      onClick={() => setIsTreeFullscreen(true)}
-                    >
+                    {/* Mini Tree */}
+                    <div className="control-module" style={{ cursor: 'pointer', minHeight: 180, display: 'flex', flexDirection: 'column' }}
+                      onClick={() => setIsTreeFullscreen(true)}>
                       <div className="hud-bracket-tl" /><div className="hud-bracket-tr" />
                       <div className="hud-bracket-bl" /><div className="hud-bracket-br" />
-
                       <div style={{
-                        display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-                        marginBottom: 8,
+                        display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8,
                       }}>
                         <span style={{
                           fontFamily: '"Space Grotesk", sans-serif', fontWeight: 700,
-                          fontSize: '0.5625rem', letterSpacing: '0.14em',
-                          color: '#5C5650', textTransform: 'uppercase',
+                          fontSize: '0.5rem', letterSpacing: '0.16em',
+                          color: '#44556B', textTransform: 'uppercase',
                         }}>
                           Search Tree
                         </span>
-                        <Maximize2 size={13} color="#5C5650" />
+                        <Maximize2 size={12} color="#44556B" />
                       </div>
-
                       <div style={{ flexGrow: 1 }}>
                         <TreePanel snapshot={snapshot} isFullscreen={false} />
                       </div>
@@ -588,79 +639,67 @@ function MissionControl({ initialAlgorithm = AlgorithmName.ASTAR }) {
 
               {/* ── TREE TAB ── */}
               {currentTab === 'tree' && (
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-                  <div style={{
-                    display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-                    borderBottom: '1px solid #2E2E2E', paddingBottom: 12,
-                  }}>
-                    <div>
-                      <h2 style={{
-                        fontFamily: '"Space Grotesk", sans-serif', fontWeight: 700,
-                        fontSize: '1.125rem', letterSpacing: '-0.02em',
-                        color: '#F5F1E8', margin: 0, marginBottom: 4,
-                      }}>
-                        Search Tree Hierarchy
-                      </h2>
-                      <span style={{
-                        fontFamily: '"JetBrains Mono", monospace',
-                        fontSize: '0.625rem', letterSpacing: '0.1em',
-                        color: '#5C5650',
-                      }}>
-                        {snapshot.treeNodes?.size || 0} nodes · depth {snapshot.metrics?.maxDepth || 0}
-                      </span>
-                    </div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+                  <div style={{ borderBottom: '1px solid #1E2D45', paddingBottom: 12 }}>
+                    <h2 style={{
+                      fontFamily: '"Space Grotesk", sans-serif', fontWeight: 700,
+                      fontSize: '1.0625rem', letterSpacing: '-0.02em',
+                      color: '#F8FAFC', margin: '0 0 4px',
+                    }}>
+                      Search Tree Hierarchy
+                    </h2>
+                    <span style={{
+                      fontFamily: '"JetBrains Mono", monospace', fontSize: '0.5625rem',
+                      letterSpacing: '0.1em', color: '#44556B',
+                    }}>
+                      {snapshot.treeNodes?.size || 0} nodes · depth {snapshot.metrics?.maxDepth || 0}
+                    </span>
                   </div>
 
                   <div style={{
-                    display: 'flex', gap: 16,
-                    minHeight: 560,
-                    background: '#0D0D0D',
-                    border: '1px solid #2E2E2E',
+                    display: 'flex', gap: 14, minHeight: 560,
+                    background: '#080C15', border: '1px solid #1E2D45',
                   }}>
                     <div style={{ flexGrow: 1, position: 'relative' }}>
                       <TreePanel snapshot={snapshot} isFullscreen={true} />
                     </div>
-
                     <div style={{
-                      width: 260, flexShrink: 0,
-                      borderLeft: '1px solid #2E2E2E',
-                      background: '#111111',
-                      padding: 16, display: 'flex', flexDirection: 'column',
-                      overflow: 'hidden',
+                      width: 256, flexShrink: 0,
+                      borderLeft: '1px solid #1E2D45',
+                      background: '#0D1321', padding: 14,
+                      display: 'flex', flexDirection: 'column', overflow: 'hidden',
                     }}>
                       <h3 style={{
                         fontFamily: '"Space Grotesk", sans-serif', fontWeight: 700,
-                        fontSize: '0.625rem', letterSpacing: '0.14em',
-                        color: '#A09A8E', textTransform: 'uppercase',
-                        margin: 0, marginBottom: 12,
-                        paddingBottom: 10, borderBottom: '1px solid #2E2E2E',
+                        fontSize: '0.5rem', letterSpacing: '0.16em',
+                        color: '#8899AA', textTransform: 'uppercase',
+                        margin: '0 0 10px', paddingBottom: 10,
+                        borderBottom: '1px solid #1E2D45',
                       }}>
                         Operations Log
                       </h3>
-                      <div style={{ overflowY: 'auto', flexGrow: 1, display: 'flex', flexDirection: 'column', gap: 6 }}>
+                      <div style={{ overflowY: 'auto', flexGrow: 1, display: 'flex', flexDirection: 'column', gap: 5 }}>
                         {operationsLog.length === 0 ? (
-                          <div style={{ color: '#2E2E2E', fontSize: '0.75rem', fontFamily: '"JetBrains Mono", monospace', textAlign: 'center', marginTop: 40 }}>
+                          <div style={{ color: '#1E2D45', fontFamily: '"JetBrains Mono", monospace', fontSize: '0.6875rem', textAlign: 'center', marginTop: 40 }}>
                             Awaiting simulation...
                           </div>
                         ) : [...operationsLog].reverse().map((evt, idx) => (
                           <div key={idx} style={{
-                            padding: '8px 10px',
-                            background: '#0D0D0D',
-                            borderLeft: '2px solid #FF7A00',
+                            padding: '7px 9px', background: '#080C15',
+                            borderLeft: '2px solid rgba(58,190,255,0.4)',
                           }}>
                             <div style={{
                               display: 'flex', justifyContent: 'space-between',
                               fontFamily: '"JetBrains Mono", monospace',
-                              fontSize: '0.5625rem', letterSpacing: '0.1em',
-                              color: '#5C5650', marginBottom: 4,
+                              fontSize: '0.4375rem', letterSpacing: '0.1em',
+                              color: '#44556B', marginBottom: 3,
                             }}>
                               <span>STEP {String(operationsLog.length - idx).padStart(3, '0')}</span>
-                              <span style={{ color: '#FF7A00' }}>{evt.type}</span>
+                              <span style={{ color: '#3ABEFF' }}>{evt.type}</span>
                             </div>
                             <span style={{
                               fontFamily: '"JetBrains Mono", monospace',
-                              fontSize: '0.5625rem', lineHeight: 1.5,
-                              color: '#A09A8E',
+                              fontSize: '0.4375rem', lineHeight: 1.5, color: '#8899AA',
                             }}>
                               {evt.explanation || `${evt.type} on ${evt.nodeId}`}
                             </span>
@@ -680,94 +719,87 @@ function MissionControl({ initialAlgorithm = AlgorithmName.ASTAR }) {
         </div>
       </main>
 
-      {/* ── FULLSCREEN TREE DIALOG ── */}
+      {/* ── FULLSCREEN TREE ── */}
       <AnimatePresence>
         {isTreeFullscreen && (
           <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
+            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
             transition={{ duration: 0.12 }}
             style={{
               position: 'fixed', inset: 0, zIndex: 50,
-              background: 'rgba(8,8,8,0.96)',
+              background: 'rgba(5,6,10,0.96)',
               display: 'flex', alignItems: 'center', justifyContent: 'center',
-              padding: 24,
+              padding: 20,
             }}
           >
             <div style={{
               width: '100%', height: '100%',
-              background: '#111111',
-              border: '1px solid #2E2E2E',
-              display: 'flex', position: 'relative',
-              overflow: 'hidden',
+              background: '#0D1321', border: '1px solid #1E2D45',
+              display: 'flex', position: 'relative', overflow: 'hidden',
             }}>
-              <button
-                onClick={() => setIsTreeFullscreen(false)}
-                style={{
-                  position: 'absolute', top: 12, right: 12, zIndex: 10,
-                  background: '#1A1A1A', border: '1px solid #2E2E2E',
-                  padding: '6px', cursor: 'pointer',
-                  color: '#5C5650', display: 'flex',
-                  transition: 'color 0.12s, border-color 0.12s',
-                }}
-                onMouseEnter={e => { e.currentTarget.style.color = '#F5F1E8'; e.currentTarget.style.borderColor = '#FF7A00'; }}
-                onMouseLeave={e => { e.currentTarget.style.color = '#5C5650'; e.currentTarget.style.borderColor = '#2E2E2E'; }}
+              <button onClick={() => setIsTreeFullscreen(false)} style={{
+                position: 'absolute', top: 12, right: 12, zIndex: 10,
+                background: '#111929', border: '1px solid #1E2D45',
+                padding: 6, cursor: 'pointer',
+                color: '#44556B', display: 'flex',
+                transition: 'color 0.12s, border-color 0.12s',
+              }}
+                onMouseEnter={e => { e.currentTarget.style.color = '#F8FAFC'; e.currentTarget.style.borderColor = '#3ABEFF'; }}
+                onMouseLeave={e => { e.currentTarget.style.color = '#44556B'; e.currentTarget.style.borderColor = '#1E2D45'; }}
               >
-                <X size={16} />
+                <X size={15} />
               </button>
 
               <div style={{ flexGrow: 1, position: 'relative' }}>
-                <div style={{ padding: '16px 20px', borderBottom: '1px solid #2E2E2E' }}>
+                <div style={{ padding: '14px 18px', borderBottom: '1px solid #1E2D45' }}>
                   <span style={{
                     fontFamily: '"Space Grotesk", sans-serif', fontWeight: 700,
-                    fontSize: '0.875rem', letterSpacing: '-0.01em', color: '#F5F1E8',
+                    fontSize: '0.8125rem', letterSpacing: '-0.01em', color: '#F8FAFC',
                   }}>
                     Full Spectrum Search Tree
                   </span>
                 </div>
-                <div style={{ position: 'absolute', inset: 0, top: 48 }}>
+                <div style={{ position: 'absolute', inset: 0, top: 46 }}>
                   <TreePanel snapshot={snapshot} isFullscreen={true} />
                 </div>
               </div>
 
               <div style={{
-                width: 280, flexShrink: 0,
-                borderLeft: '1px solid #2E2E2E',
-                background: '#0D0D0D',
+                width: 272, flexShrink: 0,
+                borderLeft: '1px solid #1E2D45', background: '#080C15',
                 display: 'flex', flexDirection: 'column', overflow: 'hidden',
               }}>
-                <div style={{ padding: '16px 16px 12px', borderBottom: '1px solid #2E2E2E' }}>
+                <div style={{ padding: '14px 14px 10px', borderBottom: '1px solid #1E2D45' }}>
                   <span style={{
                     fontFamily: '"Space Grotesk", sans-serif', fontWeight: 700,
-                    fontSize: '0.625rem', letterSpacing: '0.14em',
-                    color: '#A09A8E', textTransform: 'uppercase',
+                    fontSize: '0.5rem', letterSpacing: '0.16em',
+                    color: '#8899AA', textTransform: 'uppercase',
                   }}>
                     Operations Log
                   </span>
                 </div>
-                <div style={{ overflowY: 'auto', flexGrow: 1, padding: 12, display: 'flex', flexDirection: 'column', gap: 5 }}>
+                <div style={{ overflowY: 'auto', flexGrow: 1, padding: 10, display: 'flex', flexDirection: 'column', gap: 4 }}>
                   {operationsLog.length === 0 ? (
-                    <div style={{ color: '#2E2E2E', fontFamily: '"JetBrains Mono", monospace', fontSize: '0.6875rem', textAlign: 'center', marginTop: 48 }}>
+                    <div style={{ color: '#1E2D45', fontFamily: '"JetBrains Mono", monospace', fontSize: '0.6875rem', textAlign: 'center', marginTop: 48 }}>
                       Awaiting simulation...
                     </div>
                   ) : [...operationsLog].reverse().map((evt, idx) => (
                     <div key={idx} style={{
-                      padding: '7px 9px', background: '#111111',
-                      borderLeft: '2px solid rgba(255,122,0,0.5)',
+                      padding: '6px 8px', background: '#0D1321',
+                      borderLeft: '2px solid rgba(58,190,255,0.35)',
                     }}>
                       <div style={{
                         display: 'flex', justifyContent: 'space-between',
                         fontFamily: '"JetBrains Mono", monospace',
-                        fontSize: '0.5rem', letterSpacing: '0.1em',
-                        color: '#5C5650', marginBottom: 3,
+                        fontSize: '0.4375rem', letterSpacing: '0.1em',
+                        color: '#44556B', marginBottom: 2,
                       }}>
                         <span>STEP {String(operationsLog.length - idx).padStart(3, '0')}</span>
-                        <span style={{ color: '#FF7A00' }}>{evt.type}</span>
+                        <span style={{ color: '#3ABEFF' }}>{evt.type}</span>
                       </div>
                       <span style={{
                         fontFamily: '"JetBrains Mono", monospace',
-                        fontSize: '0.5rem', lineHeight: 1.5, color: '#A09A8E',
+                        fontSize: '0.4375rem', lineHeight: 1.5, color: '#8899AA',
                       }}>
                         {evt.explanation || `${evt.type} on ${evt.nodeId}`}
                       </span>
@@ -784,7 +816,7 @@ function MissionControl({ initialAlgorithm = AlgorithmName.ASTAR }) {
 }
 
 /* ════════════════════════════════════════════════════════
-   APP ROOT — Renders landing OR mission control
+   APP ROOT
 ════════════════════════════════════════════════════════ */
 export default function App() {
   const [hasEnteredApp, setHasEnteredApp] = useState(false);
@@ -795,9 +827,6 @@ export default function App() {
     setHasEnteredApp(true);
   };
 
-  if (!hasEnteredApp) {
-    return <LandingPage onEnterApp={handleEnterApp} />;
-  }
-
+  if (!hasEnteredApp) return <LandingPage onEnterApp={handleEnterApp} />;
   return <MissionControl initialAlgorithm={selectedAlgorithm} />;
 }

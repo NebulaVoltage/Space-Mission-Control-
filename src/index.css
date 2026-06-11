@@ -3,60 +3,69 @@
 
 @theme {
   /* ════════════════════════════════════════
-     NEW BRAND COLOR IDENTITY
-     Obsidian / Coral / Teal — rare, premium
+     MCA MISSION CONTROL ANALYST
+     Space Identity Color System
   ════════════════════════════════════════ */
-  --color-obsidian:       #080808;
-  --color-graphite:       #111111;
-  --color-graphite-mid:   #1A1A1A;
-  --color-graphite-panel: #222222;
-  --color-graphite-border:#2E2E2E;
 
-  --color-ivory:          #F5F1E8;
-  --color-ivory-muted:    #A09A8E;
-  --color-ivory-dim:      #5C5650;
+  /* Depth layers — deep space to surface */
+  --color-space-void:     #05060A;
+  --color-space-deep:     #080C15;
+  --color-midnight:       #0D1321;
+  --color-midnight-mid:   #111929;
+  --color-midnight-high:  #162035;
+  --color-midnight-card:  #1A2540;
+  --color-midnight-border:#1E2D45;
+  --color-midnight-edge:  #253450;
 
-  --color-coral:          #FF7A00;
-  --color-coral-light:    #FF9A3C;
-  --color-coral-soft:     #FF7A001A;
+  /* Brand accent palette */
+  --color-nebula:         #6D5DFF;
+  --color-nebula-light:   #8B7DFF;
+  --color-nebula-dim:     rgba(109,93,255,0.12);
 
-  --color-teal:           #00D1B2;
-  --color-teal-light:     #33DCC5;
-  --color-teal-soft:      #00D1B215;
+  --color-cosmic:         #3ABEFF;
+  --color-cosmic-light:   #6DD1FF;
+  --color-cosmic-dim:     rgba(58,190,255,0.10);
 
-  --color-success:        #22C55E;
+  --color-aurora:         #00D1B2;
+  --color-aurora-light:   #33DCC5;
+  --color-aurora-dim:     rgba(0,209,178,0.10);
+
+  --color-starlight:      #F8FAFC;
+  --color-starlight-muted:#8899AA;
+  --color-starlight-dim:  #44556B;
+
+  --color-success:        #00D1B2;
   --color-critical:       #EF4444;
   --color-warning:        #F59E0B;
 
   /* ════════════════════════════════════════
-     BACKWARD COMPAT REMAPS
-     Old Tailwind class names → new palette
-     (existing components keep working)
+     BACKWARD COMPAT — existing class names
+     mapped to new space palette
   ════════════════════════════════════════ */
-  --color-cyber-black:     #080808;
-  --color-cyber-gray-dark: #111111;
-  --color-cyber-gray:      #1A1A1A;
-  --color-cyber-gray-light:#2E2E2E;
+  --color-cyber-black:     #05060A;
+  --color-cyber-gray-dark: #0D1321;
+  --color-cyber-gray:      #111929;
+  --color-cyber-gray-light:#1E2D45;
 
-  --color-electric-cyan:   #00D1B2;
-  --color-royal-blue:      #FF7A00;
-  --color-deep-violet:     #FF9A3C;
-  --color-neon-cyan:       #00D1B2;
-  --color-neon-green:      #22C55E;
+  --color-electric-cyan:   #3ABEFF;
+  --color-royal-blue:      #6D5DFF;
+  --color-deep-violet:     #8B7DFF;
+  --color-neon-cyan:       #3ABEFF;
+  --color-neon-green:      #00D1B2;
   --color-neon-red:        #EF4444;
-  --color-neon-amber:      #FF7A00;
-  --color-neon-purple:     #FF9A3C;
-  --color-primary-purple:  #FF7A00;
-  --color-secondary-purple:#00D1B2;
-  --color-accent-violet:   #FF9A3C;
-  --color-primary-accent:  #FF7A00;
-  --color-secondary-accent:#00D1B2;
+  --color-neon-amber:      #F59E0B;
+  --color-neon-purple:     #8B7DFF;
+  --color-primary-purple:  #6D5DFF;
+  --color-secondary-purple:#3ABEFF;
+  --color-accent-violet:   #8B7DFF;
+  --color-primary-accent:  #3ABEFF;
+  --color-secondary-accent:#6D5DFF;
   --color-tertiary-accent: #00D1B2;
-  --color-text-primary:    #F5F1E8;
-  --color-text-secondary:  #A09A8E;
-  --color-text-muted:      #5C5650;
+  --color-text-primary:    #F8FAFC;
+  --color-text-secondary:  #8899AA;
+  --color-text-muted:      #44556B;
 
-  /* Fonts */
+  /* Typography */
   --font-space: "Space Grotesk", sans-serif;
   --font-sans:  "Inter", sans-serif;
   --font-mono:  "JetBrains Mono", monospace;
@@ -65,24 +74,21 @@
 /* ════════════════════════════════════════
    BASE RESET
 ════════════════════════════════════════ */
-*, *::before, *::after {
-  box-sizing: border-box;
-}
+*, *::before, *::after { box-sizing: border-box; }
 
 body {
   margin: 0;
-  background-color: #080808;
-  color: #F5F1E8;
+  background-color: #05060A;
+  color: #F8FAFC;
   font-family: "Inter", sans-serif;
   overflow-x: hidden;
   min-height: 100vh;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  text-rendering: optimizeLegibility;
 }
 
 /* ════════════════════════════════════════
-   TYPOGRAPHY SYSTEM
+   TYPOGRAPHY
 ════════════════════════════════════════ */
 .font-display {
   font-family: "Space Grotesk", sans-serif;
@@ -103,139 +109,164 @@ body {
 }
 
 /* ════════════════════════════════════════
-   LANDING PAGE BACKGROUND LAYERS
+   SPACE ATMOSPHERE BACKGROUNDS
 ════════════════════════════════════════ */
 
-/* Tiny dot grid — depth layer */
-.dot-grid {
-  background-image: radial-gradient(circle, rgba(245, 241, 232, 0.055) 1px, transparent 1px);
-  background-size: 28px 28px;
+/* Deep space nebula background */
+.nebula-bg {
+  background:
+    radial-gradient(ellipse 65% 50% at 10% 15%, rgba(109,93,255,0.10) 0%, transparent 65%),
+    radial-gradient(ellipse 55% 45% at 88% 78%, rgba(58,190,255,0.07) 0%, transparent 60%),
+    radial-gradient(ellipse 80% 55% at 50% 105%, rgba(0,209,178,0.05) 0%, transparent 55%),
+    radial-gradient(ellipse 40% 30% at 70% 5%, rgba(58,190,255,0.04) 0%, transparent 50%),
+    #05060A;
 }
 
-/* Thin structural line grid */
-.line-grid {
+/* Star field — pure CSS repeating radial dots */
+.star-field {
   background-image:
-    linear-gradient(to right,  rgba(245,241,232,0.018) 1px, transparent 1px),
-    linear-gradient(to bottom, rgba(245,241,232,0.018) 1px, transparent 1px);
-  background-size: 56px 56px;
+    radial-gradient(circle, rgba(248,250,252,0.55) 1px, transparent 1px),
+    radial-gradient(circle, rgba(248,250,252,0.30) 1px, transparent 1px),
+    radial-gradient(circle, rgba(248,250,252,0.20) 1px, transparent 1px),
+    radial-gradient(circle, rgba(58,190,255,0.25) 1px, transparent 1px);
+  background-size: 160px 120px, 90px 130px, 220px 160px, 300px 200px;
+  background-position: 12px 22px, 48px 68px, 95px 35px, 170px 85px;
 }
 
-/* Atmospheric coral glow — top-right hero */
-.atmos-coral {
-  position: absolute;
-  top: -20%;
-  right: -8%;
-  width: 55%;
-  height: 65%;
-  background: radial-gradient(ellipse at center, rgba(255,122,0,0.07) 0%, transparent 70%);
-  pointer-events: none;
-  z-index: 0;
+/* Cosmic scan line (animated) */
+.scan-overlay {
+  background: linear-gradient(
+    180deg,
+    transparent 0%,
+    rgba(58,190,255,0.015) 48%,
+    rgba(58,190,255,0.03) 50%,
+    rgba(58,190,255,0.015) 52%,
+    transparent 100%
+  );
+  background-size: 100% 200px;
+  animation: scan-travel 8s linear infinite;
 }
 
-/* Atmospheric teal glow — bottom-left hero */
-.atmos-teal {
-  position: absolute;
-  bottom: -10%;
-  left: -5%;
-  width: 45%;
-  height: 55%;
-  background: radial-gradient(ellipse at center, rgba(0,209,178,0.06) 0%, transparent 70%);
-  pointer-events: none;
+/* Structural orbital grid overlay for mission control */
+.orbital-grid {
+  position: fixed;
+  inset: 0;
   z-index: 0;
+  pointer-events: none;
+  background-image:
+    linear-gradient(to right,  rgba(58,190,255,0.02) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(58,190,255,0.02) 1px, transparent 1px);
+  background-size: 64px 64px;
 }
 
 /* ════════════════════════════════════════
-   LANDING PAGE BUTTONS
+   ANIMATIONS
+════════════════════════════════════════ */
+
+/* Slow upward drift — space particles */
+@keyframes particle-drift {
+  0%   { transform: translate(0px, 0px);    opacity: var(--p-op, 0.2); }
+  20%  { transform: translate(6px, -14px);  }
+  40%  { transform: translate(-4px, -28px); opacity: var(--p-op, 0.2); }
+  60%  { transform: translate(8px, -44px);  }
+  80%  { transform: translate(-2px, -58px); opacity: calc(var(--p-op, 0.2) * 0.5); }
+  100% { transform: translate(4px, -72px);  opacity: 0; }
+}
+
+/* Scan line travel */
+@keyframes scan-travel {
+  0%   { background-position: 0 -200px; }
+  100% { background-position: 0 100%; }
+}
+
+/* Pulse ring for active indicators */
+@keyframes pulse-ring {
+  0%   { transform: scale(1);    opacity: 0.6; }
+  100% { transform: scale(1.8);  opacity: 0; }
+}
+
+/* Gentle glow breathe */
+@keyframes glow-breathe {
+  0%, 100% { opacity: 0.5; }
+  50%       { opacity: 1.0; }
+}
+
+/* ════════════════════════════════════════
+   BUTTONS
 ════════════════════════════════════════ */
 .btn-primary {
-  background: #FF7A00;
-  color: #080808;
+  background: #3ABEFF;
+  color: #05060A;
   font-family: "Space Grotesk", sans-serif;
   font-weight: 700;
   font-size: 0.8125rem;
-  letter-spacing: 0.07em;
+  letter-spacing: 0.08em;
   text-transform: uppercase;
   padding: 15px 36px;
   border: none;
   cursor: pointer;
-  transition: opacity 0.15s ease, transform 0.15s ease;
+  transition: opacity 0.15s, transform 0.15s;
   display: inline-flex;
   align-items: center;
   gap: 10px;
-  flex-shrink: 0;
 }
 
-.btn-primary:hover {
-  opacity: 0.88;
-  transform: translateY(-2px);
-}
-
-.btn-primary:active {
-  transform: translateY(0);
-  opacity: 1;
-}
+.btn-primary:hover  { opacity: 0.88; transform: translateY(-2px); }
+.btn-primary:active { transform: translateY(0); }
 
 .btn-ghost {
   background: transparent;
-  color: #5C5650;
+  color: #44556B;
   font-family: "Space Grotesk", sans-serif;
   font-weight: 600;
   font-size: 0.8125rem;
-  letter-spacing: 0.07em;
+  letter-spacing: 0.08em;
   text-transform: uppercase;
   padding: 15px 36px;
-  border: 1px solid #2E2E2E;
+  border: 1px solid #1E2D45;
   cursor: pointer;
-  transition: border-color 0.15s ease, color 0.15s ease, transform 0.15s ease;
+  transition: border-color 0.15s, color 0.15s, transform 0.15s;
   display: inline-flex;
   align-items: center;
   gap: 10px;
-  flex-shrink: 0;
 }
 
-.btn-ghost:hover {
-  border-color: #A09A8E;
-  color: #F5F1E8;
-  transform: translateY(-2px);
-}
+.btn-ghost:hover { border-color: #8899AA; color: #F8FAFC; transform: translateY(-2px); }
 
 /* ════════════════════════════════════════
-   SECTION & LABEL STYLES
+   SECTION LABELS
 ════════════════════════════════════════ */
 .section-eyebrow {
   font-family: "JetBrains Mono", monospace;
   font-size: 0.6875rem;
   letter-spacing: 0.18em;
   text-transform: uppercase;
-  color: #5C5650;
+  color: #44556B;
 }
 
 .section-divider {
-  width: 40px;
+  width: 32px;
   height: 1px;
-  background: #FF7A00;
-  display: block;
+  background: #3ABEFF;
+  display: inline-block;
 }
 
 /* ════════════════════════════════════════
    MISSION CONTROL COMPONENT CLASSES
-   (used inside the app, not landing page)
 ════════════════════════════════════════ */
 .control-module {
-  background-color: #111111;
-  border: 1px solid #2E2E2E;
+  background-color: #0D1321;
+  border: 1px solid #1E2D45;
   border-radius: 2px;
   padding: 16px;
   position: relative;
-  transition: border-color 0.15s ease;
+  transition: border-color 0.15s;
 }
 
-.control-module:hover {
-  border-color: #3A3A3A;
-}
+.control-module:hover { border-color: #253450; }
 
 .control-module-header {
-  border-bottom: 1px solid #2E2E2E;
+  border-bottom: 1px solid #1E2D45;
   padding-bottom: 10px;
   margin-bottom: 14px;
   display: flex;
@@ -243,78 +274,45 @@ body {
   align-items: center;
 }
 
-/* HUD corner brackets — coral tinted, thin */
-.hud-bracket-tl { position: absolute; top: -1px; left: -1px; width: 9px; height: 9px; border-top: 1px solid #FF7A00; border-left: 1px solid #FF7A00; }
-.hud-bracket-tr { position: absolute; top: -1px; right: -1px; width: 9px; height: 9px; border-top: 1px solid #FF7A00; border-right: 1px solid #FF7A00; }
-.hud-bracket-bl { position: absolute; bottom: -1px; left: -1px; width: 9px; height: 9px; border-bottom: 1px solid #FF7A00; border-left: 1px solid #FF7A00; }
-.hud-bracket-br { position: absolute; bottom: -1px; right: -1px; width: 9px; height: 9px; border-bottom: 1px solid #FF7A00; border-right: 1px solid #FF7A00; }
+/* HUD brackets — cosmic cyan tint */
+.hud-bracket-tl { position:absolute; top:-1px; left:-1px;  width:9px; height:9px; border-top:1px solid #3ABEFF; border-left:1px solid #3ABEFF; }
+.hud-bracket-tr { position:absolute; top:-1px; right:-1px; width:9px; height:9px; border-top:1px solid #3ABEFF; border-right:1px solid #3ABEFF; }
+.hud-bracket-bl { position:absolute; bottom:-1px; left:-1px;  width:9px; height:9px; border-bottom:1px solid #3ABEFF; border-left:1px solid #3ABEFF; }
+.hud-bracket-br { position:absolute; bottom:-1px; right:-1px; width:9px; height:9px; border-bottom:1px solid #3ABEFF; border-right:1px solid #3ABEFF; }
 
-/* Sci-fi interactive button */
+/* Interactive sci-fi button */
 .sci-fi-button {
-  background-color: #1A1A1A;
-  border: 1px solid #2E2E2E;
-  color: #A09A8E;
+  background-color: #111929;
+  border: 1px solid #1E2D45;
+  color: #8899AA;
   border-radius: 2px;
-  transition: border-color 0.12s ease, color 0.12s ease, transform 0.1s ease;
+  transition: border-color 0.12s, color 0.12s, transform 0.1s;
   cursor: pointer;
 }
 
-.sci-fi-button:hover:not(:disabled) {
-  border-color: #FF7A00;
-  color: #F5F1E8;
-  transform: translateY(-1px);
-}
+.sci-fi-button:hover:not(:disabled) { border-color: #3ABEFF; color: #F8FAFC; transform: translateY(-1px); }
+.sci-fi-button:active:not(:disabled) { transform: translateY(0); }
 
-.sci-fi-button:active:not(:disabled) {
-  transform: translateY(0);
-}
-
-/* Grid cell for reference in canvas components */
-.grid-cell {
-  aspect-ratio: 1;
-  border: 1px solid rgba(245, 241, 232, 0.035);
-}
-
-/* Legacy glass-card → control-module */
-.glass-card {
-  background-color: #111111;
-  border: 1px solid #2E2E2E;
+/* Legacy compat */
+.glass-card, .glass-panel {
+  background-color: #0D1321;
+  border: 1px solid #1E2D45;
   border-radius: 2px;
 }
 
-.glass-panel {
-  background-color: #111111;
-  border: 1px solid #2E2E2E;
-}
+.glass-card-hover:hover { border-color: #253450; }
 
-.glass-card-hover:hover {
-  border-color: #3A3A3A;
-}
-
-/* Orbital grid (legacy — now just minimal line grid) */
-.orbital-grid {
-  position: fixed;
-  inset: 0;
-  z-index: 0;
-  pointer-events: none;
-  background-image:
-    linear-gradient(to right,  rgba(255,122,0,0.012) 1px, transparent 1px),
-    linear-gradient(to bottom, rgba(255,122,0,0.012) 1px, transparent 1px);
-  background-size: 64px 64px;
+.grid-cell {
+  aspect-ratio: 1;
+  border: 1px solid rgba(58,190,255,0.04);
 }
 
 /* ════════════════════════════════════════
-   PREMIUM SCROLLBAR
+   SCROLLBAR
 ════════════════════════════════════════ */
 ::-webkit-scrollbar { width: 4px; height: 4px; }
-::-webkit-scrollbar-track { background: #080808; }
-::-webkit-scrollbar-thumb { background: #2E2E2E; border-radius: 2px; }
-::-webkit-scrollbar-thumb:hover { background: #FF7A00; }
+::-webkit-scrollbar-track { background: #05060A; }
+::-webkit-scrollbar-thumb { background: #1E2D45; border-radius: 2px; }
+::-webkit-scrollbar-thumb:hover { background: #3ABEFF; }
 
-/* ════════════════════════════════════════
-   SELECTION
-════════════════════════════════════════ */
-::selection {
-  background: rgba(255,122,0,0.25);
-  color: #F5F1E8;
-}
+::selection { background: rgba(58,190,255,0.2); color: #F8FAFC; }
