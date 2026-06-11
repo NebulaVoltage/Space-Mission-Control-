@@ -2,7 +2,7 @@ import { useState, useRef, useEffect, useMemo, useCallback } from 'react';
 import { 
   Maximize2, X, Terminal, Settings, Database, GitBranch, 
   ChevronLeft, ChevronRight, Sun, Moon, Search, Compass, Activity, 
-  Map, LayoutGrid, Clock, User
+  LayoutGrid, Clock, User
 } from 'lucide-react';
 import { AnimatePresence, motion } from 'framer-motion';
 
@@ -324,25 +324,28 @@ export default function App() {
       {/* Stars backdrop effect */}
       <div className="stars-container" />
 
-      {/* Nebula radial backdrop glow */}
-      <div className="fixed top-0 left-0 w-full h-full z-0 pointer-events-none bg-[radial-gradient(ellipse_at_center,rgba(139,92,246,0.04),transparent_50%)]" />
+      {/* Orbital Grid overlay */}
+      <div className="orbital-grid" />
 
-      {/* Left Sidebar (Collapsible) */}
+      {/* Nebula radial backdrop glow */}
+      <div className="fixed top-0 left-0 w-full h-full z-0 pointer-events-none bg-[radial-gradient(ellipse_at_center,rgba(56,189,248,0.03),transparent_50%)]" />
+
+      {/* Left Sidebar (Collapsible Control Module) */}
       <motion.aside
         layout
         animate={{ width: isSidebarCollapsed ? 64 : 240 }}
-        transition={{ duration: 0.3, ease: 'easeInOut' }}
-        className="flex-shrink-0 z-20 bg-cyber-gray-dark/95 border-r border-border-purple flex flex-col justify-between select-none relative backdrop-blur-md"
+        transition={{ duration: 0.25, ease: 'easeInOut' }}
+        className="flex-shrink-0 z-20 bg-cyber-gray-dark/95 border-r border-border-purple flex flex-col justify-between select-none relative backdrop-blur-md shadow-2xl"
       >
         <div className="flex flex-col">
           {/* Logo Section */}
           <div className="h-16 flex items-center px-4 border-b border-cyber-gray-light gap-3 overflow-hidden select-none">
-            <div className="w-8 h-8 rounded-full bg-primary-purple/10 border border-primary-purple flex items-center justify-center relative shrink-0">
-              <Activity className="text-primary-purple w-4 h-4 animate-pulse" />
-              <div className="absolute inset-0 rounded-full border border-primary-purple/40 animate-ping" />
+            <div className="w-8 h-8 rounded-full bg-electric-cyan/10 border border-electric-cyan flex items-center justify-center relative shrink-0">
+              <Activity className="text-electric-cyan w-4 h-4 animate-pulse" />
+              <div className="absolute inset-0 rounded-full border border-electric-cyan/40 animate-ping" />
             </div>
             {!isSidebarCollapsed && (
-              <span className="font-cyber-header font-black text-xs text-white tracking-widest leading-none whitespace-nowrap">
+              <span className="font-cyber-header font-black text-xs text-white tracking-widest leading-none whitespace-nowrap text-glow-cyan">
                 MISSION CONTROL
               </span>
             )}
@@ -359,16 +362,16 @@ export default function App() {
                   onClick={() => setCurrentTab(item.id)}
                   className={`w-full flex items-center gap-3.5 px-3.5 py-2.5 rounded-lg border text-left text-xs font-cyber-header tracking-wider uppercase transition-all relative cursor-pointer ${
                     isActive
-                      ? 'border-primary-purple/40 text-white bg-primary-purple/10 shadow-[0_0_12px_rgba(139,92,246,0.12)]'
+                      ? 'border-electric-cyan/40 text-white bg-electric-cyan/10 shadow-[0_0_12px_rgba(56,189,248,0.12)]'
                       : 'border-transparent text-slate-400 hover:text-slate-200 hover:bg-cyber-gray-light/30'
                   }`}
                 >
-                  <Icon className={`w-4.5 h-4.5 ${isActive ? 'text-primary-purple' : 'text-slate-500'}`} />
+                  <Icon className={`w-4.5 h-4.5 ${isActive ? 'text-electric-cyan' : 'text-slate-500'}`} />
                   {!isSidebarCollapsed && <span className="font-bold leading-none">{item.label}</span>}
                   {isActive && !isSidebarCollapsed && (
                     <motion.div
                       layoutId="activeGlow"
-                      className="absolute right-2 w-1.5 h-1.5 bg-primary-purple rounded-full shadow-[0_0_8px_rgba(139,92,246,0.8)]"
+                      className="absolute right-2 w-1.5 h-1.5 bg-electric-cyan rounded-full shadow-[0_0_8px_rgba(56,189,248,0.8)]"
                     />
                   )}
                 </button>
@@ -401,38 +404,38 @@ export default function App() {
 
       {/* Main Workspace Frame */}
       <main className="flex-grow flex flex-col min-w-0 relative z-10 min-h-screen">
-        {/* Top Navigation Bar */}
+        {/* Top Navigation Bar inside Glass Compartments */}
         <header className="h-16 flex justify-between items-center px-6 border-b border-cyber-gray-light bg-cyber-black/40 backdrop-blur-md select-none shrink-0">
           <div className="flex items-center gap-6">
             {/* Status indicator */}
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 bg-cyber-black/40 border border-cyber-gray-light px-3 py-1.5 rounded-lg">
               <span className="relative flex h-2 w-2">
                 <span className={`animate-ping absolute inline-flex h-full w-full rounded-full opacity-75 ${
-                  snapshot.status === SimStatus.RUNNING ? 'bg-primary-purple' : 'bg-emerald-400'
+                  snapshot.status === SimStatus.RUNNING ? 'bg-electric-cyan' : 'bg-success'
                 }`} />
                 <span className={`relative inline-flex rounded-full h-2 w-2 ${
-                  snapshot.status === SimStatus.RUNNING ? 'bg-primary-purple' : 'bg-emerald-400'
+                  snapshot.status === SimStatus.RUNNING ? 'bg-electric-cyan' : 'bg-success'
                 }`} />
               </span>
-              <span className="text-[10px] font-cyber-header text-slate-400 font-bold uppercase tracking-wider">
-                CORE: {snapshot.status === SimStatus.RUNNING ? 'RESOLVING INTERCEPT' : 'CORE STANDBY'}
+              <span className="text-[10px] font-cyber-header text-slate-300 font-bold uppercase tracking-wider">
+                CORE STATUS: {snapshot.status === SimStatus.RUNNING ? 'RESOLVING TRANSIT' : 'READY'}
               </span>
             </div>
 
             {/* Dynamic UTC Clock */}
-            <div className="hidden sm:flex items-center gap-1.5 text-slate-500">
+            <div className="hidden sm:flex items-center gap-2 bg-cyber-black/40 border border-cyber-gray-light px-3 py-1.5 rounded-lg text-slate-400">
               <Clock className="w-3.5 h-3.5" />
-              <span className="font-cyber-mono text-[9px] font-bold tracking-widest uppercase">
+              <span className="font-cyber-mono text-[9px] font-bold tracking-widest uppercase text-slate-300">
                 {utcTime}
               </span>
             </div>
 
             {/* Active Systems */}
-            <div className="hidden md:flex items-center gap-2 border-l border-cyber-gray-light pl-6">
+            <div className="hidden md:flex items-center gap-2 pl-2">
               <span className="text-[9px] font-cyber-header font-bold text-slate-500 tracking-wider">
                 SYSTEMS LINKED:
               </span>
-              <span className="bg-primary-purple/10 border border-primary-purple/20 text-primary-purple font-cyber-mono text-[9px] px-2 py-0.5 rounded font-bold">
+              <span className="bg-electric-cyan/10 border border-electric-cyan/20 text-electric-cyan font-cyber-mono text-[9px] px-2.5 py-0.5 rounded font-bold">
                 4 / 4 ONLINE
               </span>
             </div>
@@ -444,20 +447,20 @@ export default function App() {
               <Search className="w-3.5 h-3.5 text-slate-600 absolute left-2.5 top-1/2 -translate-y-1/2" />
               <input
                 type="text"
-                placeholder="SEARCH TRANSMISSIONS..."
+                placeholder="SEARCH PORTAL..."
                 disabled
-                className="pl-8 pr-3 py-1 bg-cyber-black/50 border border-cyber-gray-light text-[9px] font-cyber-mono rounded placeholder:text-slate-600 focus:outline-none focus:border-primary-purple w-48 text-slate-300"
+                className="pl-8 pr-3 py-1 bg-cyber-black/50 border border-cyber-gray-light text-[9px] font-cyber-mono rounded placeholder:text-slate-600 focus:outline-none focus:border-electric-cyan w-48 text-slate-300"
               />
             </div>
 
             {/* User Profile Slot */}
-            <div className="flex items-center gap-2 border-l border-cyber-gray-light pl-4">
-              <div className="w-8 h-8 rounded-full border border-border-purple bg-cyber-gray flex items-center justify-center overflow-hidden shrink-0">
-                <User className="w-4 h-4 text-slate-400" />
+            <div className="flex items-center gap-2 border border-cyber-gray-light bg-cyber-black/40 px-3 py-1.5 rounded-lg">
+              <div className="w-6 h-6 rounded-full border border-royal-blue bg-cyber-gray flex items-center justify-center overflow-hidden shrink-0">
+                <User className="w-3.5 h-3.5 text-slate-400" />
               </div>
               <div className="hidden lg:flex flex-col text-left leading-none">
-                <span className="text-[10px] font-cyber-header font-bold text-white">CAPT. V. SHRESTHA</span>
-                <span className="text-[8px] font-cyber-mono text-slate-500">DEPUTY COMMANDER</span>
+                <span className="text-[9px] font-cyber-header font-bold text-white">CAPT. V. SHRESTHA</span>
+                <span className="text-[7.5px] font-cyber-mono text-slate-500">DEPUTY COMMANDER</span>
               </div>
             </div>
           </div>
@@ -500,18 +503,18 @@ export default function App() {
 
                     {/* Right: Grid scanner viewport */}
                     <div className="lg:col-span-8 flex flex-col gap-5">
-                      <div className="flex flex-col gap-2 bg-cyber-gray-dark border border-cyber-gray-light p-4 rounded-lg shadow-2xl relative glass-panel">
-                        <div className="flex justify-between items-center border-b border-cyber-gray-light pb-2 select-none">
-                          <h2 className="font-cyber-header text-[11px] font-bold text-white tracking-wider flex items-center gap-2">
-                            <span className="w-1.5 h-1.5 bg-primary-purple rounded-full animate-ping"></span>
+                      <div className="flex flex-col gap-2 p-4 rounded-lg shadow-2xl relative glass-panel">
+                        <div className="flex justify-between items-center border-b border-cyber-gray-light pb-2 select-none font-cyber-header">
+                          <h2 className="text-[11px] font-bold text-white tracking-wider flex items-center gap-2">
+                            <span className="w-1.5 h-1.5 bg-electric-cyan rounded-full animate-ping"></span>
                             ORBITAL SECTOR SCANNER VIEWPORT
                           </h2>
-                          <div className="font-cyber-mono text-[9px] text-primary-purple tracking-widest text-glow-purple uppercase font-bold">
+                          <div className="font-cyber-mono text-[9px] text-electric-cyan tracking-widest text-glow-cyan uppercase font-bold">
                             LINKING: {algorithm.toUpperCase()}
                           </div>
                         </div>
 
-                        <div className="h-[420px] w-full">
+                        <div className="h-[420px] w-full relative">
                           <GridCanvas
                             grid={grid}
                             snapshot={snapshot}
@@ -527,21 +530,21 @@ export default function App() {
                         </div>
 
                         {/* Legend labels */}
-                        <div className="grid grid-cols-5 gap-1.5 text-[8px] font-cyber-mono text-slate-400 bg-cyber-black/40 p-2.5 rounded border border-cyber-gray-light text-center select-none shadow-inner font-semibold">
-                          <div className="flex items-center justify-center gap-1.5"><span className="w-2.5 h-2.5 block border border-primary-purple bg-primary-purple/20"></span> TX HUB</div>
-                          <div className="flex items-center justify-center gap-1.5"><span className="w-2.5 h-2.5 block border border-accent-violet bg-accent-violet/20"></span> RX PROBE</div>
-                          <div className="flex items-center justify-center gap-1.5"><span className="w-2.5 h-2.5 block border border-red-500 bg-red-500/15 bg-[repeating-linear-gradient(45deg,transparent,transparent_2px,#ef4444_2px,#ef4444_3px)]"></span> DEBRIS (INF)</div>
-                          <div className="flex items-center justify-center gap-1.5"><span className="w-2.5 h-2.5 block border border-accent-violet bg-accent-violet/10 bg-[repeating-linear-gradient(-45deg,transparent,transparent_2px,#c084fc_2px,#c084fc_3px)]"></span> NEBULA (3x)</div>
-                          <div className="flex items-center justify-center gap-1.5"><span className="w-2.5 h-2.5 block border border-primary-purple bg-primary-purple/10 bg-[repeating-linear-gradient(-45deg,transparent,transparent_2px,#8b5cf6_2px,#8b5cf6_3px)]"></span> GRAVITY (5x)</div>
+                        <div className="grid grid-cols-5 gap-1.5 text-[8px] font-cyber-mono text-slate-400 bg-cyber-black/40 p-2.5 rounded border border-cyber-gray-light/60 text-center select-none shadow-inner font-semibold">
+                          <div className="flex items-center justify-center gap-1.5"><span className="w-2.5 h-2.5 block border border-electric-cyan bg-electric-cyan/20"></span> TX HUB</div>
+                          <div className="flex items-center justify-center gap-1.5"><span className="w-2.5 h-2.5 block border border-royal-blue bg-royal-blue/20"></span> RX PROBE</div>
+                          <div className="flex items-center justify-center gap-1.5"><span className="w-2.5 h-2.5 block border border-critical bg-critical/15 bg-[repeating-linear-gradient(45deg,transparent,transparent_2px,#ff5d73_2px,#ff5d73_3px)]"></span> DEBRIS (INF)</div>
+                          <div className="flex items-center justify-center gap-1.5"><span className="w-2.5 h-2.5 block border border-warning bg-warning/10 bg-[repeating-linear-gradient(-45deg,transparent,transparent_2px,#ffb547_2px,#ffb547_3px)]"></span> NEBULA (3x)</div>
+                          <div className="flex items-center justify-center gap-1.5"><span className="w-2.5 h-2.5 block border border-deep-violet bg-deep-violet/10 bg-[repeating-linear-gradient(-45deg,transparent,transparent_2px,#7c5cff_2px,#7c5cff_3px)]"></span> GRAVITY (5x)</div>
                         </div>
                       </div>
 
                       {/* Mini Tree Viewer */}
                       <div 
-                        className="bg-cyber-gray-dark border border-cyber-gray-light p-3 rounded-lg shadow-2xl relative h-[250px] group flex flex-col cursor-pointer transition-all hover:border-slate-600 glass-panel"
+                        className="p-3 rounded-lg shadow-2xl relative h-[250px] group flex flex-col cursor-pointer transition-all glass-panel glass-card-hover"
                         onClick={() => setIsTreeFullscreen(true)}
                       >
-                        <div className="absolute top-2 right-2 z-20 text-slate-500 group-hover:text-primary-purple transition-colors">
+                        <div className="absolute top-2 right-2 z-20 text-slate-500 group-hover:text-electric-cyan transition-colors">
                           <Maximize2 className="w-4 h-4" />
                         </div>
                         <div className="text-[9px] font-cyber-header font-bold text-slate-400 mb-2 border-b border-cyber-gray-light pb-1 select-none">
@@ -614,11 +617,11 @@ export default function App() {
                         {operationsLog.map((evt, idx) => (
                           <div
                             key={idx}
-                            className="bg-cyber-gray-dark/50 p-2 border-l border-primary-purple text-slate-400 flex flex-col gap-0.5"
+                            className="bg-cyber-gray-dark/50 p-2 border-l border-electric-cyan text-slate-400 flex flex-col gap-0.5"
                           >
                             <div className="flex justify-between text-[8px] text-slate-500 font-bold mb-0.5">
                               <span>STEP {String(idx + 1).padStart(3, '0')}</span>
-                              <span className="text-primary-purple">{evt.type}</span>
+                              <span className="text-electric-cyan">{evt.type}</span>
                             </div>
                             <span className="text-slate-300 leading-relaxed">
                               {evt.explanation || `Event: ${evt.type} on cell ${evt.nodeId}`}
@@ -654,7 +657,7 @@ export default function App() {
             exit={{ opacity: 0 }}
             className="fixed inset-0 z-50 bg-cyber-black/90 backdrop-blur-sm p-4 md:p-8 flex items-center justify-center select-none"
           >
-            <div className="w-full h-full bg-cyber-gray-dark border border-primary-purple/40 rounded-lg shadow-[0_0_50px_rgba(139,92,246,0.15)] flex flex-col md:flex-row relative overflow-hidden">
+            <div className="w-full h-full bg-cyber-gray-dark border border-electric-cyan/40 rounded-lg shadow-[0_0_50px_rgba(56,189,248,0.15)] flex flex-col md:flex-row relative overflow-hidden">
               <button
                 onClick={() => setIsTreeFullscreen(false)}
                 className="absolute top-4 right-4 z-50 text-slate-400 hover:text-white bg-cyber-black p-2 rounded-full border border-slate-700 cursor-pointer transition-colors"
@@ -689,11 +692,11 @@ export default function App() {
                   {operationsLog.map((evt, idx) => (
                     <div
                       key={idx}
-                      className="bg-cyber-gray-dark/50 p-2 border-l border-primary-purple text-slate-400 flex flex-col gap-0.5"
+                      className="bg-cyber-gray-dark/50 p-2 border-l border-electric-cyan text-slate-400 flex flex-col gap-0.5"
                     >
                       <div className="flex justify-between text-[8px] text-slate-500 font-bold mb-0.5">
                         <span>STEP {String(idx + 1).padStart(3, '0')}</span>
-                        <span className="text-primary-purple">{evt.type}</span>
+                        <span className="text-electric-cyan">{evt.type}</span>
                       </div>
                       <span className="text-slate-300 leading-relaxed">
                         {evt.explanation || `Event: ${evt.type} on cell ${evt.nodeId}`}
