@@ -1,8 +1,45 @@
 import { useEffect, useRef, useState, useCallback } from 'react';
 import { CameraController } from './CameraController.js';
-import { CellState, CellType } from '../../engine/eventTypes.js';
+import { CellState, CellType, SimStatus } from '../../engine/eventTypes.js';
 
 const CELL_SIZE = 28;
+
+// Depth-based color mapping for BFS (Cyan -> Electric Blue -> Purple -> Magenta)
+const interpolateColor = (depth, maxDepth) => {
+  if (maxDepth <= 0) return 'rgba(0, 229, 255, 0.4)'; // #00E5FF
+  
+  const ratio = Math.min(1, Math.max(0, depth / maxDepth));
+  
+  // Color stops: 
+  // 0.0: Cyan (0, 229, 255)
+  // 0.33: Electric Blue (77, 124, 254)
+  // 0.66: Purple (139, 92, 246)
+  // 1.0: Magenta (236, 72, 153)
+  
+  let r, g, b;
+  if (ratio < 0.33) {
+    const t = ratio / 0.33;
+    r = 0 + (77 - 0) * t;
+    g = 229 + (124 - 229) * t;
+    b = 255 + (254 - 255) * t;
+  } else if (ratio < 0.66) {
+    const t = (ratio - 0.33) / 0.33;
+    r = 77 + (139 - 77) * t;
+    g = 124 + (92 - 124) * t;
+    b = 254 + (246 - 254) * t;
+  } else {
+    const t = (ratio - 0.66) / 0.34;
+    r = 139 + (236 - 139) * t;
+    g = 92 + (72 - 92) * t;
+    b = 246 + (153 - 246) * t;
+  }
+  
+  return `rgba(${Math.round(r)}, ${Math.round(g)}, ${Math.round(b)}, 0.4)`;
+};
+
+const getPathColor = () => '#FFD700'; // Golden final path
+const getStartColor = () => '#00FFB3'; // Start node pulse
+const getGoalColor = () => '#FF4D6D'; // Goal node pulse
 
 export default function GridCanvas({
   grid,
@@ -25,6 +62,17 @@ export default function GridCanvas({
   const [isPanning, setIsPanning] = useState(false);
   const [isDrawing, setIsDrawing] = useState(false);
   const [currentZoom, setCurrentZoom] = useState(1);
+
+  // ────────────────────────────────────────────────────────
+  // VFX STATE (Persisted across renders)
+  // ────────────────────────────────────────────────────────
+  const vfxRef = useRef({
+    particles: [],
+    ripples: [],
+    pathProgress: 0,
+    lastStep: -1,
+  });
+  const animFrameId = useRef(null);
 
   // Grid dimensions
   const rows = grid.length;
@@ -67,26 +115,71 @@ export default function GridCanvas({
 
     camera.fitToScreen(worldWidth, worldHeight, width, height);
     setCurrentZoom(camera.zoom);
-    drawAll();
+    drawBackground();
   }, [worldWidth, worldHeight]);
 
-  // Request redraw of both layers
-  const drawAll = useCallback(() => {
+  // Handle VFX Triggers
+  useEffect(() => {
+    const vfx = vfxRef.current;
+    
+    // Reset path progress if simulation resets or isn't complete
+    if (snapshot.status !== SimStatus.COMPLETE || !snapshot.pathFound) {
+      vfx.pathProgress = 0;
+    } else if (snapshot.status === SimStatus.COMPLETE && snapshot.pathFound && vfx.pathProgress < 1) {
+      // Start path drawing animation when complete
+      if (vfx.pathProgress === 0) vfx.pathProgress = 0.01;
+    }
+
+    // Check for newly expanded nodes to spawn ripples and particles
+    if (snapshot.currentStep > vfx.lastStep) {
+      const newEvents = snapshot.events.slice(vfx.lastStep + 1, snapshot.currentStep + 1);
+      
+      newEvents.forEach(evt => {
+        if (evt.type === 'NODE_EXPANDED') {
+          const [r, c] = evt.nodeId.split(',').map(Number);
+          const cx = c * CELL_SIZE + CELL_SIZE / 2;
+          const cy = r * CELL_SIZE + CELL_SIZE / 2;
+          
+          // Spawn Ripple
+          vfx.ripples.push({
+            x: cx, y: cy,
+            radius: 0,
+            maxRadius: CELL_SIZE * 1.5,
+            opacity: 1,
+            speed: 0.8
+          });
+
+          // Spawn Particles
+          for (let i = 0; i < 4; i++) {
+            const angle = Math.random() * Math.PI * 2;
+            const speed = 0.5 + Math.random() * 1.5;
+            vfx.particles.push({
+              x: cx, y: cy,
+              vx: Math.cos(angle) * speed,
+              vy: Math.sin(angle) * speed,
+              life: 1.0,
+              decay: 0.02 + Math.random() * 0.03,
+              size: 1 + Math.random() * 2
+            });
+          }
+        }
+      });
+    } else if (snapshot.currentStep < vfx.lastStep) {
+      // User scrubbed backward, clear VFX
+      vfx.particles = [];
+      vfx.ripples = [];
+      vfx.pathProgress = 0;
+    }
+    
+    vfx.lastStep = snapshot.currentStep;
+
+  }, [snapshot]);
+
+  // Redraw Background when grid or static elements change
+  useEffect(() => {
     drawBackground();
-    drawForeground();
-  }, [grid, snapshot, startNode, goalNode, hoveredCell]);
+  }, [grid, startNode, goalNode, drawBackground]);
 
-  // Redraw both layers when grid, nodes, or simulation state changes
-  useEffect(() => {
-    drawAll();
-  }, [grid, startNode, goalNode, snapshot, drawAll]);
-
-  // Redraw foreground specifically when hovered cell changes
-  useEffect(() => {
-    drawForeground();
-  }, [hoveredCell]);
-
-  // Layer 1 (Base), Layer 2 (Structural Framework), Layer 3 (Panels & Mesh)
   function drawBackground() {
     const canvas = canvasBgRef.current;
     const camera = cameraRef.current;
@@ -115,8 +208,8 @@ export default function GridCanvas({
     ctx.fillStyle = centerGrad;
     ctx.fillRect(0, 0, worldWidth, worldHeight);
 
-    // LAYER 2: Structural grid lines — coral tinted
-    ctx.strokeStyle = 'rgba(255, 122, 0, 0.08)';
+    // LAYER 2: Structural grid lines — space tinted
+    ctx.strokeStyle = 'rgba(58, 190, 255, 0.06)';
     ctx.lineWidth = 0.5;
     ctx.strokeRect(0, 0, worldWidth, worldHeight);
 
@@ -141,15 +234,6 @@ export default function GridCanvas({
       ctx.fillText(`R${String(r).padStart(2, '0')}`, worldWidth + 6, ry);
       ctx.textAlign = 'right';
     }
-
-    // LAYER 3: Concentric Orbital Radar Sweeps
-    ctx.strokeStyle = 'rgba(109, 93, 255, 0.04)';
-    ctx.lineWidth = 0.75;
-    ctx.beginPath();
-    ctx.arc(worldWidth / 2, worldHeight / 2, Math.min(worldWidth, worldHeight) * 0.18, 0, Math.PI * 2);
-    ctx.arc(worldWidth / 2, worldHeight / 2, Math.min(worldWidth, worldHeight) * 0.38, 0, Math.PI * 2);
-    ctx.arc(worldWidth / 2, worldHeight / 2, Math.min(worldWidth, worldHeight) * 0.58, 0, Math.PI * 2);
-    ctx.stroke();
 
     // Bounding target brackets inside grid corners
     const bkSize = 10;
@@ -188,20 +272,16 @@ export default function GridCanvas({
         const y = r * CELL_SIZE;
 
         if (cell.type === CellType.OBSTACLE) {
-          // Obstacle (Debris) - physical metal hatches
           ctx.fillStyle = 'rgba(107, 114, 128, 0.12)';
           ctx.fillRect(x + 1, y + 1, CELL_SIZE - 2, CELL_SIZE - 2);
           ctx.strokeStyle = '#6b7280';
           ctx.lineWidth = 1;
           ctx.strokeRect(x + 1, y + 1, CELL_SIZE - 2, CELL_SIZE - 2);
-
-          // Diagonal structural hatch lines
           ctx.strokeStyle = 'rgba(107, 114, 128, 0.25)';
           ctx.beginPath();
           ctx.moveTo(x + 4, y + 24); ctx.lineTo(x + 24, y + 4);
           ctx.stroke();
         } else if (cell.type === CellType.WEIGHTED || cell.type === CellType.HEAVY) {
-          // Nebula/Gravity - Energy-tinted panels
           const isHeavy = cell.type === CellType.HEAVY;
           ctx.fillStyle = isHeavy ? 'rgba(142, 132, 255, 0.08)' : 'rgba(109, 93, 255, 0.08)';
           ctx.fillRect(x + 1, y + 1, CELL_SIZE - 2, CELL_SIZE - 2);
@@ -212,51 +292,13 @@ export default function GridCanvas({
       }
     }
 
-    // Static cell states (Explored path nodes)
-    const cellStates = snapshot?.cellStates || new Map();
-    ctx.lineWidth = 1;
-    ctx.shadowBlur = 0;
-    
-    for (const [key, state] of cellStates.entries()) {
-      if (state === CellState.START || state === CellState.GOAL || state === CellState.CURRENT || state === CellState.IN_FRONTIER) continue;
-
-      // Fast non-allocating parser
-      const commaIdx = key.indexOf(',');
-      const r = +key.substring(0, commaIdx);
-      const c = +key.substring(commaIdx + 1);
-      const x = c * CELL_SIZE;
-      const y = r * CELL_SIZE;
-
-      if (state === CellState.DISCOVERED) {
-        ctx.fillStyle = 'rgba(109, 93, 255, 0.06)';
-        ctx.strokeStyle = 'rgba(109, 93, 255, 0.16)';
-        ctx.fillRect(x + 2, y + 2, CELL_SIZE - 4, CELL_SIZE - 4);
-        ctx.strokeRect(x + 2, y + 2, CELL_SIZE - 4, CELL_SIZE - 4);
-      } else if (state === CellState.EXPANDED) {
-        ctx.fillStyle = 'rgba(109, 93, 255, 0.03)';
-        ctx.strokeStyle = 'rgba(109, 93, 255, 0.08)';
-        ctx.fillRect(x + 2, y + 2, CELL_SIZE - 4, CELL_SIZE - 4);
-        ctx.strokeRect(x + 2, y + 2, CELL_SIZE - 4, CELL_SIZE - 4);
-      } else if (state === CellState.BACKTRACKED) {
-        ctx.fillStyle = 'rgba(255, 93, 115, 0.06)';
-        ctx.strokeStyle = 'rgba(255, 93, 115, 0.15)';
-        ctx.fillRect(x + 2, y + 2, CELL_SIZE - 4, CELL_SIZE - 4);
-        ctx.strokeRect(x + 2, y + 2, CELL_SIZE - 4, CELL_SIZE - 4);
-      } else if (state === CellState.FINAL_PATH) {
-        // High visibility trace paths
-        ctx.fillStyle = 'rgba(58, 190, 255, 0.75)';
-        ctx.strokeStyle = '#ffffff';
-        ctx.lineWidth = 1;
-        ctx.fillRect(x + 2, y + 2, CELL_SIZE - 4, CELL_SIZE - 4);
-        ctx.strokeRect(x + 2, y + 2, CELL_SIZE - 4, CELL_SIZE - 4);
-      }
-    }
-
     ctx.restore();
   }
 
-  // LAYER 4: Interactive Controls, LAYER 5: Active Data
-  function drawForeground() {
+  // ────────────────────────────────────────────────────────
+  // FOREGROUND ANIMATION LOOP
+  // ────────────────────────────────────────────────────────
+  const renderForeground = useCallback(() => {
     const canvas = canvasFgRef.current;
     const camera = cameraRef.current;
     if (!canvas || !camera) return;
@@ -270,53 +312,161 @@ export default function GridCanvas({
     ctx.scale(dpr, dpr);
     camera.applyTransform(ctx);
 
+    const now = Date.now();
+    const vfx = vfxRef.current;
     const cellStates = snapshot?.cellStates || new Map();
+    const treeNodes = snapshot?.treeNodes || new Map();
+    const maxDepth = snapshot?.metrics?.maxDepth || 1;
 
-    // 1. Draw dynamic wavefront cells (Frontier, Current)
+    // Set cinematic blending
+    ctx.globalCompositeOperation = 'lighter';
+    
+    // 1. Draw Older Traces (Discovered, Expanded, Backtracked)
     ctx.lineWidth = 1;
     ctx.shadowBlur = 0;
     
     for (const [key, state] of cellStates.entries()) {
-      if (state !== CellState.IN_FRONTIER && state !== CellState.CURRENT) continue;
+      if (state === CellState.START || state === CellState.GOAL || state === CellState.CURRENT || state === CellState.IN_FRONTIER || state === CellState.FINAL_PATH) continue;
 
-      const commaIdx = key.indexOf(',');
-      const r = +key.substring(0, commaIdx);
-      const c = +key.substring(commaIdx + 1);
+      const [r, c] = key.split(',').map(Number);
       const x = c * CELL_SIZE;
       const y = r * CELL_SIZE;
-
-      if (state === CellState.IN_FRONTIER) {
-        // Active data frontier
-        ctx.fillStyle = 'rgba(58, 190, 255, 0.18)';
-        ctx.strokeStyle = 'rgba(58, 190, 255, 0.4)';
+      
+      const node = treeNodes.get(key);
+      const depth = node?.depth || 0;
+      
+      if (state === CellState.DISCOVERED || state === CellState.EXPANDED) {
+        // Gradient trace
+        ctx.fillStyle = interpolateColor(depth, maxDepth);
         ctx.fillRect(x + 2, y + 2, CELL_SIZE - 4, CELL_SIZE - 4);
-        ctx.strokeRect(x + 2, y + 2, CELL_SIZE - 4, CELL_SIZE - 4);
-      } else if (state === CellState.CURRENT) {
-        // Core resolving cursor (no shadow, crisp highlight)
-        ctx.fillStyle = '#3abeff';
-        ctx.strokeStyle = '#ffffff';
-        ctx.lineWidth = 1.5;
+      } else if (state === CellState.BACKTRACKED) {
+        ctx.fillStyle = 'rgba(236, 72, 153, 0.15)'; // Fading pink/magenta
         ctx.fillRect(x + 2, y + 2, CELL_SIZE - 4, CELL_SIZE - 4);
-        ctx.strokeRect(x + 2, y + 2, CELL_SIZE - 4, CELL_SIZE - 4);
       }
     }
 
-    // 2. Draw TX start & RX goal endpoints
+    // 2. Draw Active Wavefront (Frontier & Current) with Bloom
+    for (const [key, state] of cellStates.entries()) {
+      if (state !== CellState.IN_FRONTIER && state !== CellState.CURRENT) continue;
+
+      const [r, c] = key.split(',').map(Number);
+      const x = c * CELL_SIZE;
+      const y = r * CELL_SIZE;
+
+      const pulse = (Math.sin(now * 0.005) + 1) / 2; // 0 to 1
+
+      if (state === CellState.IN_FRONTIER) {
+        // Neon pulsing aura
+        ctx.shadowColor = '#00E5FF';
+        ctx.shadowBlur = 10 + pulse * 10;
+        ctx.fillStyle = `rgba(0, 229, 255, ${0.3 + pulse * 0.2})`;
+        ctx.strokeStyle = '#00E5FF';
+        
+        ctx.fillRect(x + 2, y + 2, CELL_SIZE - 4, CELL_SIZE - 4);
+        ctx.strokeRect(x + 2, y + 2, CELL_SIZE - 4, CELL_SIZE - 4);
+      } else if (state === CellState.CURRENT) {
+        // Bright scanning core
+        ctx.shadowColor = '#FFFFFF';
+        ctx.shadowBlur = 15;
+        ctx.fillStyle = '#FFFFFF';
+        ctx.strokeStyle = '#00E5FF';
+        
+        const sizeOffset = pulse * 2;
+        ctx.fillRect(x + 2 - sizeOffset, y + 2 - sizeOffset, CELL_SIZE - 4 + sizeOffset * 2, CELL_SIZE - 4 + sizeOffset * 2);
+      }
+    }
+
+    ctx.shadowBlur = 0; // Reset bloom for particles and paths
+
+    // 3. Draw VFX (Ripples & Particles)
+    // Update & Draw Ripples
+    vfx.ripples = vfx.ripples.filter(rip => {
+      rip.radius += rip.speed;
+      rip.opacity = 1 - (rip.radius / rip.maxRadius);
+      
+      if (rip.opacity <= 0) return false;
+      
+      ctx.beginPath();
+      ctx.arc(rip.x, rip.y, rip.radius, 0, Math.PI * 2);
+      ctx.strokeStyle = `rgba(0, 229, 255, ${rip.opacity})`;
+      ctx.lineWidth = 1;
+      ctx.stroke();
+      
+      return true;
+    });
+
+    // Update & Draw Particles
+    vfx.particles = vfx.particles.filter(p => {
+      p.x += p.vx;
+      p.y += p.vy;
+      p.life -= p.decay;
+      
+      if (p.life <= 0) return false;
+      
+      ctx.fillStyle = `rgba(0, 229, 255, ${p.life})`;
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+      ctx.fill();
+      
+      return true;
+    });
+
+    // 4. Draw Animated Final Path (Golden Beam)
+    if (vfx.pathProgress > 0 && snapshot.path && snapshot.path.length > 0) {
+      if (vfx.pathProgress < 1) {
+        vfx.pathProgress += 0.015; // Animation speed
+        if (vfx.pathProgress > 1) vfx.pathProgress = 1;
+      }
+
+      ctx.shadowColor = getPathColor();
+      ctx.shadowBlur = 20;
+      ctx.strokeStyle = getPathColor();
+      ctx.lineWidth = 3;
+      ctx.lineCap = 'round';
+      ctx.lineJoin = 'round';
+
+      ctx.beginPath();
+      const pathLength = snapshot.path.length;
+      const visibleNodes = Math.ceil(pathLength * vfx.pathProgress);
+      
+      for (let i = 0; i < visibleNodes; i++) {
+        const nodeKey = snapshot.path[i];
+        const [r, c] = nodeKey.split(',').map(Number);
+        const cx = c * CELL_SIZE + CELL_SIZE / 2;
+        const cy = r * CELL_SIZE + CELL_SIZE / 2;
+        
+        if (i === 0) ctx.moveTo(cx, cy);
+        else ctx.lineTo(cx, cy);
+      }
+      ctx.stroke();
+      ctx.shadowBlur = 0;
+    }
+
+    // Reset composite operation for endpoints & UI
+    ctx.globalCompositeOperation = 'source-over';
+
+    // 5. Draw TX start & RX goal endpoints
     const drawEndpoint = (node, isStart) => {
       const x = node.col * CELL_SIZE;
       const y = node.row * CELL_SIZE;
-      const ringColor = isStart ? '#3abeff' : '#6d5dff';
+      const ringColor = isStart ? getStartColor() : getGoalColor();
       
       ctx.save();
       ctx.translate(x + CELL_SIZE / 2, y + CELL_SIZE / 2);
 
+      // Pulse effect
+      const pulse = (Math.sin(now * 0.004) + 1) / 2;
+      ctx.shadowColor = ringColor;
+      ctx.shadowBlur = 10 + pulse * 10;
       ctx.strokeStyle = ringColor;
-      ctx.lineWidth = 1.2;
+      ctx.lineWidth = 1.5;
 
-      // Outer target sweep ring
       ctx.beginPath();
-      ctx.arc(0, 0, CELL_SIZE / 2 - 4, 0, Math.PI * 2);
+      ctx.arc(0, 0, CELL_SIZE / 2 - 4 + (pulse * 2), 0, Math.PI * 2);
       ctx.stroke();
+
+      ctx.shadowBlur = 0; // Reset
+      ctx.lineWidth = 1.2;
 
       // Tactical crosshairs
       ctx.beginPath();
@@ -340,13 +490,6 @@ export default function GridCanvas({
       }
       ctx.stroke();
 
-      // Telemetry tags
-      ctx.font = 'bold 6px "JetBrains Mono"';
-      ctx.fillStyle = '#ffffff';
-      ctx.textAlign = 'center';
-      ctx.textBaseline = 'middle';
-      ctx.fillText(isStart ? 'TX' : 'RX', 0, 0.5);
-
       ctx.restore();
     };
 
@@ -357,12 +500,12 @@ export default function GridCanvas({
     if (hoveredCell && isInteractive && !isPanning) {
       const hx = hoveredCell.col * CELL_SIZE;
       const hy = hoveredCell.row * CELL_SIZE;
-      ctx.strokeStyle = '#3abeff';
+      ctx.strokeStyle = '#00E5FF';
       ctx.lineWidth = 1;
       ctx.strokeRect(hx + 1, hy + 1, CELL_SIZE - 2, CELL_SIZE - 2);
 
       // Fine coordinate crosshairs sweeps outside grid bounding box
-      ctx.strokeStyle = 'rgba(58, 190, 255, 0.1)';
+      ctx.strokeStyle = 'rgba(0, 229, 255, 0.1)';
       ctx.lineWidth = 0.5;
       ctx.beginPath();
       ctx.moveTo(hx + CELL_SIZE / 2, 0); ctx.lineTo(hx + CELL_SIZE / 2, worldHeight);
@@ -371,7 +514,18 @@ export default function GridCanvas({
     }
 
     ctx.restore();
-  }
+
+    // Loop
+    animFrameId.current = requestAnimationFrame(renderForeground);
+  }, [snapshot, startNode, goalNode, hoveredCell, isInteractive, isPanning, worldWidth, worldHeight]);
+
+  // Start/Stop Animation Loop
+  useEffect(() => {
+    animFrameId.current = requestAnimationFrame(renderForeground);
+    return () => {
+      if (animFrameId.current) cancelAnimationFrame(animFrameId.current);
+    };
+  }, [renderForeground]);
 
   // Handle Drag/Pan inputs
   const getCellFromEvent = (e) => {
@@ -410,7 +564,7 @@ export default function GridCanvas({
 
     if (isPanning) {
       camera.handleMouseMove(e);
-      drawAll();
+      drawBackground(); // Update background pan
       return;
     }
 
@@ -442,7 +596,7 @@ export default function GridCanvas({
   return (
     <div
       ref={containerRef}
-      className={`w-full h-full relative overflow-hidden bg-cyber-black border border-cyber-gray-light rounded ${
+      className={`w-full h-full relative overflow-hidden bg-[#080808] border border-cyber-gray-light rounded ${
         isPanning ? 'cursor-grabbing' : isInteractive ? 'cursor-crosshair' : 'cursor-default'
       }`}
       style={{ minHeight: '430px' }}
@@ -452,61 +606,16 @@ export default function GridCanvas({
       onMouseLeave={handleMouseUp}
       onContextMenu={(e) => e.preventDefault()}
     >
-      {/* Viewport bracket corners */}
-      <div className="hud-bracket-tl" />
-      <div className="hud-bracket-tr" />
-      <div className="hud-bracket-bl" />
-      <div className="hud-bracket-br" />
-
-      {/* Grid rendering layers */}
-      <canvas ref={canvasBgRef} className="absolute inset-0 pointer-events-none" style={{ zIndex: 1 }} />
-      <canvas ref={canvasFgRef} className="absolute inset-0 block" style={{ zIndex: 2 }} />
-
-      {/* Viewport telemetry footer tags */}
-      <div className="absolute bottom-3 left-3 z-10 font-cyber-mono text-[8px] text-slate-500 bg-cyber-black/90 px-2 py-1 border border-cyber-gray-light rounded select-none pointer-events-none">
-        GRID SECTOR RATIO: {cols}x{rows} | ZOOM LEVEL: {Math.round(currentZoom * 100)}%
-      </div>
-
-      {/* Floating Tactical Zoom controls */}
-      <div 
-        className="absolute bottom-3 right-3 z-10 flex items-center gap-1.5 px-2 py-1 select-none shadow-lg shadow-black/80 bg-cyber-gray-dark border border-cyber-gray-light rounded"
-        onMouseDown={(e) => e.stopPropagation()}
-        onMouseMove={(e) => e.stopPropagation()}
-        onMouseUp={(e) => e.stopPropagation()}
-        onClick={(e) => e.stopPropagation()}
-      >
-        <button
-          onClick={() => {
-            if (cameraRef.current) {
-              cameraRef.current.zoomToCenter(false, (z) => {
-                setCurrentZoom(z);
-                drawAll();
-              });
-            }
-          }}
-          disabled={currentZoom <= 0.301}
-          className="w-5 h-5 flex items-center justify-center font-cyber-mono font-bold text-xs rounded border border-cyber-gray-light bg-cyber-gray-dark/50 text-slate-400 hover:text-electric-cyan hover:border-electric-cyan transition-all cursor-pointer disabled:opacity-20"
-        >
-          −
-        </button>
-        <span className="font-cyber-mono text-[8px] text-slate-400 min-w-[28px] text-center">
-          {Math.round(currentZoom * 100)}%
-        </span>
-        <button
-          onClick={() => {
-            if (cameraRef.current) {
-              cameraRef.current.zoomToCenter(true, (z) => {
-                setCurrentZoom(z);
-                drawAll();
-              });
-            }
-          }}
-          disabled={currentZoom >= 4.99}
-          className="w-5 h-5 flex items-center justify-center font-cyber-mono font-bold text-xs rounded border border-cyber-gray-light bg-cyber-gray-dark/50 text-slate-400 hover:text-electric-cyan hover:border-electric-cyan transition-all cursor-pointer disabled:opacity-20"
-        >
-          +
-        </button>
-      </div>
+      {/* Background layer: static grid, grid lines, obstacles */}
+      <canvas
+        ref={canvasBgRef}
+        className="absolute top-0 left-0 pointer-events-none z-0"
+      />
+      {/* Foreground layer: dynamic cell states, path, brushes, VFX */}
+      <canvas
+        ref={canvasFgRef}
+        className="absolute top-0 left-0 pointer-events-none z-10"
+      />
     </div>
   );
 }
