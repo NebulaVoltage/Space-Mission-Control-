@@ -205,34 +205,34 @@ export default function GridCanvas({
       
       switch (state) {
         case CellState.DISCOVERED:
-          ctx.fillStyle = 'rgba(0, 210, 255, 0.18)';
-          ctx.strokeStyle = 'rgba(0, 210, 255, 0.35)';
+          ctx.fillStyle = 'rgba(139, 92, 246, 0.15)';
+          ctx.strokeStyle = 'rgba(139, 92, 246, 0.3)';
           ctx.fillRect(x + 2, y + 2, CELL_SIZE - 4, CELL_SIZE - 4);
           ctx.strokeRect(x + 2, y + 2, CELL_SIZE - 4, CELL_SIZE - 4);
           break;
 
         case CellState.IN_FRONTIER:
           // Frontier nodes have a breathing border glow
-          ctx.fillStyle = 'rgba(0, 210, 255, 0.28)';
-          ctx.strokeStyle = `rgba(0, 210, 255, ${0.5 + 0.15 * Math.sin(Date.now() / 120)})`;
+          ctx.fillStyle = 'rgba(168, 85, 247, 0.22)';
+          ctx.strokeStyle = `rgba(168, 85, 247, ${0.45 + 0.15 * Math.sin(Date.now() / 120)})`;
           ctx.lineWidth = 1.5;
           ctx.fillRect(x + 2, y + 2, CELL_SIZE - 4, CELL_SIZE - 4);
           ctx.strokeRect(x + 2, y + 2, CELL_SIZE - 4, CELL_SIZE - 4);
           break;
 
         case CellState.EXPANDED:
-          ctx.fillStyle = 'rgba(0, 210, 255, 0.06)';
-          ctx.strokeStyle = 'rgba(0, 210, 255, 0.12)';
+          ctx.fillStyle = 'rgba(139, 92, 246, 0.05)';
+          ctx.strokeStyle = 'rgba(139, 92, 246, 0.12)';
           ctx.fillRect(x + 2, y + 2, CELL_SIZE - 4, CELL_SIZE - 4);
           ctx.strokeRect(x + 2, y + 2, CELL_SIZE - 4, CELL_SIZE - 4);
           break;
 
         case CellState.CURRENT:
           // Pulsing scale factor for current node
-          ctx.fillStyle = '#00d2ff';
+          ctx.fillStyle = '#c084fc';
           ctx.strokeStyle = '#ffffff';
           ctx.lineWidth = 2;
-          ctx.shadowColor = '#00d2ff';
+          ctx.shadowColor = '#c084fc';
           ctx.shadowBlur = 10;
           
           ctx.translate(x + CELL_SIZE / 2, y + CELL_SIZE / 2);
@@ -242,17 +242,17 @@ export default function GridCanvas({
           break;
 
         case CellState.BACKTRACKED:
-          ctx.fillStyle = 'rgba(157, 78, 221, 0.15)';
-          ctx.strokeStyle = 'rgba(157, 78, 221, 0.3)';
+          ctx.fillStyle = 'rgba(239, 68, 68, 0.1)';
+          ctx.strokeStyle = 'rgba(239, 68, 68, 0.25)';
           ctx.fillRect(x + 2, y + 2, CELL_SIZE - 4, CELL_SIZE - 4);
           ctx.strokeRect(x + 2, y + 2, CELL_SIZE - 4, CELL_SIZE - 4);
           break;
 
         case CellState.FINAL_PATH:
-          ctx.fillStyle = 'rgba(0, 210, 255, 0.85)';
+          ctx.fillStyle = 'rgba(139, 92, 246, 0.85)';
           ctx.strokeStyle = '#ffffff';
           ctx.lineWidth = 1.5;
-          ctx.shadowColor = '#00d2ff';
+          ctx.shadowColor = '#8b5cf6';
           ctx.shadowBlur = 8;
           ctx.fillRect(x + 2, y + 2, CELL_SIZE - 4, CELL_SIZE - 4);
           ctx.strokeRect(x + 2, y + 2, CELL_SIZE - 4, CELL_SIZE - 4);
@@ -265,7 +265,7 @@ export default function GridCanvas({
     const drawEndpoint = (node, isStart) => {
       const x = node.col * CELL_SIZE;
       const y = node.row * CELL_SIZE;
-      const glowColor = isStart ? '#ffaa00' : '#00e676';
+      const glowColor = isStart ? '#8b5cf6' : '#c084fc';
       
       ctx.save();
       ctx.translate(x + CELL_SIZE / 2, y + CELL_SIZE / 2);
@@ -273,36 +273,53 @@ export default function GridCanvas({
 
       // Glow backing
       ctx.shadowColor = glowColor;
-      ctx.shadowBlur = 12;
-      ctx.fillStyle = isStart ? 'rgba(255, 170, 0, 0.3)' : 'rgba(0, 230, 118, 0.3)';
-      ctx.strokeStyle = isStart ? '#ffaa00' : '#00e676';
-      ctx.lineWidth = 2;
+      ctx.shadowBlur = 10;
+      ctx.strokeStyle = glowColor;
+      ctx.lineWidth = 1.5;
 
-      // Draw Diamond for start, Star/Circle for Goal
+      // 1. Draw outer circle
       ctx.beginPath();
-      if (isStart) {
-        ctx.moveTo(0, -CELL_SIZE / 2 + 4);
-        ctx.lineTo(CELL_SIZE / 2 - 4, 0);
-        ctx.lineTo(0, CELL_SIZE / 2 - 4);
-        ctx.lineTo(-CELL_SIZE / 2 + 4, 0);
-      } else {
-        // Draw satellite hexagon
-        for (let i = 0; i < 6; i++) {
-          const angle = (Math.PI / 3) * i;
-          ctx.lineTo((CELL_SIZE / 2 - 4) * Math.cos(angle), (CELL_SIZE / 2 - 4) * Math.sin(angle));
-        }
-      }
-      ctx.closePath();
-      ctx.fill();
+      ctx.arc(0, 0, CELL_SIZE / 2 - 3, 0, Math.PI * 2);
       ctx.stroke();
 
-      // Draw Icon emoji
+      // 2. Draw crosshairs
+      ctx.beginPath();
+      ctx.moveTo(-CELL_SIZE / 2 + 1, 0);
+      ctx.lineTo(-3, 0);
+      ctx.moveTo(3, 0);
+      ctx.lineTo(CELL_SIZE / 2 - 1, 0);
+      ctx.moveTo(0, -CELL_SIZE / 2 + 1);
+      ctx.lineTo(0, -3);
+      ctx.moveTo(0, 3);
+      ctx.lineTo(0, CELL_SIZE / 2 - 1);
+      ctx.stroke();
+
+      // 3. Draw inner details
+      if (isStart) {
+        ctx.beginPath();
+        ctx.arc(0, 0, 4, 0, Math.PI * 2);
+        ctx.fillStyle = '#ffffff';
+        ctx.fill();
+        ctx.stroke();
+      } else {
+        ctx.beginPath();
+        ctx.moveTo(0, -4);
+        ctx.lineTo(4, 0);
+        ctx.lineTo(0, 4);
+        ctx.lineTo(-4, 0);
+        ctx.closePath();
+        ctx.fillStyle = '#ffffff';
+        ctx.fill();
+        ctx.stroke();
+      }
+
+      // 4. Draw labels (TX / RX)
       ctx.shadowBlur = 0;
-      ctx.font = '13px Arial';
+      ctx.font = 'bold 7px "JetBrains Mono"';
+      ctx.fillStyle = '#ffffff';
       ctx.textAlign = 'center';
       ctx.textBaseline = 'middle';
-      ctx.fillStyle = '#ffffff';
-      ctx.fillText(isStart ? '🚀' : '📡', 0, 1);
+      ctx.fillText(isStart ? 'TX' : 'RX', 0, 0.5);
 
       ctx.restore();
     };
@@ -314,9 +331,9 @@ export default function GridCanvas({
     if (hoveredCell && isInteractive && !isPanning) {
       const hx = hoveredCell.col * CELL_SIZE;
       const hy = hoveredCell.row * CELL_SIZE;
-      ctx.strokeStyle = '#00d2ff';
+      ctx.strokeStyle = '#8b5cf6';
       ctx.lineWidth = 1.5;
-      ctx.shadowColor = '#00d2ff';
+      ctx.shadowColor = '#8b5cf6';
       ctx.shadowBlur = 6;
       ctx.strokeRect(hx + 1, hy + 1, CELL_SIZE - 2, CELL_SIZE - 2);
     }
@@ -443,7 +460,7 @@ export default function GridCanvas({
 
       {/* Floating Zoom Controls */}
       <div 
-        className="absolute bottom-2 right-2 z-10 flex items-center gap-1.5 bg-cyber-black/80 px-2 py-1 border border-cyber-gray-light rounded backdrop-blur select-none shadow-lg shadow-black/40"
+        className="absolute bottom-2 right-2 z-10 flex items-center gap-1.5 px-2 py-1 select-none shadow-lg shadow-black/40 glass-card"
         onMouseDown={(e) => e.stopPropagation()}
         onMouseMove={(e) => e.stopPropagation()}
         onMouseUp={(e) => e.stopPropagation()}
@@ -459,7 +476,7 @@ export default function GridCanvas({
             }
           }}
           disabled={currentZoom <= 0.301}
-          className="w-6 h-6 flex items-center justify-center font-cyber-mono font-bold text-xs rounded border border-cyber-gray-light bg-cyber-gray-dark/50 text-slate-400 hover:text-neon-cyan hover:border-neon-cyan hover:bg-neon-cyan/10 hover:shadow-[0_0_8px_rgba(0,210,255,0.25)] active:scale-95 disabled:opacity-20 disabled:pointer-events-none focus:outline-none focus:ring-1 focus:ring-neon-cyan transition-all cursor-pointer"
+          className="w-6 h-6 flex items-center justify-center font-cyber-mono font-bold text-xs rounded border border-cyber-gray-light bg-cyber-gray-dark/50 text-slate-400 hover:text-primary-purple hover:border-primary-purple hover:bg-primary-purple/10 hover:shadow-[0_0_8px_rgba(139,92,246,0.25)] active:scale-95 disabled:opacity-20 disabled:pointer-events-none focus:outline-none focus:ring-1 focus:ring-primary-purple transition-all cursor-pointer"
           title="Zoom Out"
         >
           −
@@ -477,7 +494,7 @@ export default function GridCanvas({
             }
           }}
           disabled={currentZoom >= 4.99}
-          className="w-6 h-6 flex items-center justify-center font-cyber-mono font-bold text-xs rounded border border-cyber-gray-light bg-cyber-gray-dark/50 text-slate-400 hover:text-neon-cyan hover:border-neon-cyan hover:bg-neon-cyan/10 hover:shadow-[0_0_8px_rgba(0,210,255,0.25)] active:scale-95 disabled:opacity-20 disabled:pointer-events-none focus:outline-none focus:ring-1 focus:ring-neon-cyan transition-all cursor-pointer"
+          className="w-6 h-6 flex items-center justify-center font-cyber-mono font-bold text-xs rounded border border-cyber-gray-light bg-cyber-gray-dark/50 text-slate-400 hover:text-primary-purple hover:border-primary-purple hover:bg-primary-purple/10 hover:shadow-[0_0_8px_rgba(139,92,246,0.25)] active:scale-95 disabled:opacity-20 disabled:pointer-events-none focus:outline-none focus:ring-1 focus:ring-primary-purple transition-all cursor-pointer"
           title="Zoom In"
         >
           +
