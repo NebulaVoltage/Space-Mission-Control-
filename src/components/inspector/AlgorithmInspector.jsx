@@ -27,28 +27,28 @@ export default function AlgorithmInspector({ snapshot }) {
       label: 'NODES DISCOVERED',
       value: metrics.nodesDiscovered || 0,
       icon: Search,
-      color: 'text-neon-cyan border-neon-cyan/20 bg-neon-cyan/5',
+      color: 'text-primary-purple border-primary-purple/20 bg-primary-purple/5',
       desc: 'Total grid cells queued or touched.',
     },
     {
       label: 'NODES EXPANDED',
       value: metrics.nodesExpanded || 0,
       icon: CheckCircle,
-      color: 'text-neon-green border-neon-green/20 bg-neon-green/5',
+      color: 'text-emerald-400 border-emerald-500/20 bg-emerald-500/5',
       desc: 'Total cells whose neighbors were evaluated.',
     },
     {
       label: 'FRONTIER SIZE',
       value: metrics.frontierSize || 0,
       icon: Layers,
-      color: 'text-neon-purple border-neon-purple/20 bg-neon-purple/5',
+      color: 'text-accent-violet border-accent-violet/20 bg-accent-violet/5',
       desc: 'Active search cells in structure queue/stack.',
     },
     {
       label: 'PATH TRAVEL COST',
       value: pathFound ? `${metrics.pathCost || 0} units` : '—',
       icon: Route,
-      color: 'text-neon-amber border-neon-amber/20 bg-neon-amber/5',
+      color: 'text-secondary-purple border-secondary-purple/20 bg-secondary-purple/5',
       desc: 'Total cumulative path edge transit weight.',
     },
     {
@@ -62,11 +62,10 @@ export default function AlgorithmInspector({ snapshot }) {
       label: 'TRANSMISSION SPEED',
       value: `${snapshot.speed || 0} Hz`,
       icon: Settings,
-      color: 'text-neon-cyan border-neon-cyan/20 bg-cyber-black/35',
+      color: 'text-primary-purple border-primary-purple/20 bg-cyber-black/35',
       desc: 'Current simulation step processing frequency.',
     },
   ];
-
 
   // Build algorithm-specific metrics
   const getAlgoMetrics = () => {
@@ -77,7 +76,7 @@ export default function AlgorithmInspector({ snapshot }) {
             label: 'CURRENT LEVEL',
             value: metrics.currentLevel || 0,
             icon: TrendingUp,
-            color: 'text-neon-cyan border-neon-cyan/20 bg-cyber-black/40',
+            color: 'text-primary-purple border-primary-purple/20 bg-cyber-black/40',
             desc: 'The current radial hop distance from start.',
           },
           {
@@ -94,14 +93,14 @@ export default function AlgorithmInspector({ snapshot }) {
             label: 'CURRENT DEPTH',
             value: metrics.currentDepth || 0,
             icon: TrendingUp,
-            color: 'text-neon-purple border-neon-purple/20 bg-cyber-black/40',
+            color: 'text-accent-violet border-accent-violet/20 bg-cyber-black/40',
             desc: 'The current active branch height.',
           },
           {
             label: 'BACKTRACK COUNT',
             value: metrics.backtrackCount || 0,
             icon: GitPullRequest,
-            color: 'text-neon-red border-neon-red/20 bg-cyber-black/40',
+            color: 'text-rose-500 border-rose-500/20 bg-cyber-black/40',
             desc: 'Number of times tree traversal stepped back.',
           },
         ];
@@ -111,7 +110,7 @@ export default function AlgorithmInspector({ snapshot }) {
             label: 'RELAXATION COUNTS',
             value: metrics.relaxationCount || 0,
             icon: Settings,
-            color: 'text-neon-amber border-neon-amber/20 bg-cyber-black/40',
+            color: 'text-secondary-purple border-secondary-purple/20 bg-cyber-black/40',
             desc: 'Total neighbor shortest-path revisions.',
           },
           {
@@ -128,14 +127,14 @@ export default function AlgorithmInspector({ snapshot }) {
             label: 'HEURISTIC EVALS',
             value: metrics.heuristicEvals || 0,
             icon: HelpCircle,
-            color: 'text-neon-green border-neon-green/20 bg-cyber-black/40',
+            color: 'text-emerald-400 border-emerald-500/20 bg-cyber-black/40',
             desc: 'Estimations calculated using Manhattan grid space.',
           },
           {
             label: 'OPEN SET SIZE',
             value: metrics.openSetSize || 0,
             icon: Layers,
-            color: 'text-neon-cyan border-neon-cyan/20 bg-cyber-black/40',
+            color: 'text-primary-purple border-primary-purple/20 bg-cyber-black/40',
             desc: 'Priority queue open list size.',
           },
         ];
@@ -147,29 +146,29 @@ export default function AlgorithmInspector({ snapshot }) {
   const algoMetrics = getAlgoMetrics();
 
   return (
-    <div className="bg-cyber-gray-dark border border-cyber-gray-light p-4 flex flex-col gap-4 shadow-xl select-none w-full">
+    <div className="glass-card p-4 flex flex-col gap-4 shadow-xl select-none w-full relative overflow-hidden">
       <div className="flex items-center justify-between border-b border-cyber-gray-light pb-2">
-        <h3 className="font-cyber-header text-xs font-bold text-slate-200 tracking-wider">
+        <h3 className="font-cyber-header text-[11px] font-bold text-white tracking-wider">
           LIVE TELEMETRY MONITOR
         </h3>
-        <span className="font-cyber-mono text-[9px] text-neon-cyan uppercase">
+        <span className="font-cyber-mono text-[9px] text-primary-purple uppercase font-bold">
           {algorithm} STATS
         </span>
       </div>
 
       {/* Completion Alerts */}
       {isComplete && pathFound && (
-        <div className="flex items-start gap-2 bg-neon-green/10 border border-neon-green/35 text-neon-green p-3 rounded text-xs leading-normal font-cyber-mono font-medium">
+        <div className="flex items-start gap-2 bg-emerald-500/10 border border-emerald-500/35 text-emerald-400 p-3 rounded text-xs leading-normal font-cyber-mono font-medium">
           <CheckCircle className="w-4 h-4 shrink-0 mt-0.5" />
           <div>
-            <span className="font-bold block text-glow-green">ROUTING SUCCESSFUL</span>
+            <span className="font-bold block text-glow-purple">ROUTING SUCCESSFUL</span>
             Optimal path established to target probe receiver. Signal locked.
           </div>
         </div>
       )}
 
       {isComplete && !pathFound && (
-        <div className="flex items-start gap-2 bg-neon-red/10 border border-neon-red/35 text-neon-red p-3 rounded text-xs leading-normal font-cyber-mono font-medium">
+        <div className="flex items-start gap-2 bg-rose-500/10 border border-rose-500/35 text-rose-400 p-3 rounded text-xs leading-normal font-cyber-mono font-medium">
           <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
           <div>
             <span className="font-bold block text-glow-red">TRANSMISSION FAILURE</span>
@@ -186,9 +185,9 @@ export default function AlgorithmInspector({ snapshot }) {
             <div
               key={idx}
               title={m.desc}
-              className={`p-3 border rounded flex flex-col justify-center relative overflow-hidden ${m.color}`}
+              className={`p-3 border rounded-lg flex flex-col justify-center relative overflow-hidden transition-all ${m.color}`}
             >
-              <div className="text-[8px] font-cyber-header tracking-wider text-slate-500 mb-1 leading-none">
+              <div className="text-[8px] font-cyber-header tracking-wider text-slate-400 mb-1 leading-none">
                 {m.label}
               </div>
               <div className="text-base font-black font-cyber-mono text-white leading-none">
@@ -211,10 +210,10 @@ export default function AlgorithmInspector({ snapshot }) {
               <div
                 key={idx}
                 title={m.desc}
-                className={`p-2.5 border rounded flex justify-between items-center relative overflow-hidden ${m.color}`}
+                className={`p-2.5 border rounded-lg flex justify-between items-center relative overflow-hidden transition-all ${m.color}`}
               >
                 <div className="flex flex-col">
-                  <span className="text-[8px] font-cyber-header tracking-wider text-slate-500 mb-0.5 leading-none">
+                  <span className="text-[8px] font-cyber-header tracking-wider text-slate-400 mb-0.5 leading-none">
                     {m.label}
                   </span>
                   <span className="text-sm font-bold font-cyber-mono text-white leading-none">
