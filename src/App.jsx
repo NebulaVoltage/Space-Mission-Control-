@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect, useMemo, useCallback } from 'react';
 import { 
-  Maximize2, X, Terminal, Settings, Database, GitBranch, 
-  ChevronLeft, ChevronRight, Sun, Moon, Search, Compass, Activity, 
+  Maximize2, X, Database, GitBranch, 
+  ChevronLeft, ChevronRight, Sun, Moon, Compass, Activity, 
   LayoutGrid, Clock, User
 } from 'lucide-react';
 import { AnimatePresence, motion } from 'framer-motion';
@@ -47,9 +47,9 @@ export default function App() {
   const [draggingNode, setDraggingNode] = useState(null); // 'start', 'goal', 'brush'
   const [isTreeFullscreen, setIsTreeFullscreen] = useState(false);
   
-  // Navigation & Theme tabs
+  // Navigation & Theme tabs (default sidebar collapsed to a navigation rail)
   const [currentTab, setCurrentTab] = useState('scanner'); // 'scanner' | 'tree' | 'telemetry'
-  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(true);
   const [theme, setTheme] = useState('dark'); // 'dark' | 'light'
   const [utcTime, setUtcTime] = useState('');
 
@@ -70,7 +70,7 @@ export default function App() {
     return () => clearInterval(timer);
   }, []);
 
-  // Sync theme with body element class list
+  // Sync theme
   useEffect(() => {
     if (theme === 'light') {
       document.body.classList.add('theme-light');
@@ -79,25 +79,23 @@ export default function App() {
     }
   }, [theme]);
 
-  // Instantiate the simulation state machine once
+  // Instantiate simulation state machine
   const engineRef = useRef(null);
   if (!engineRef.current) {
     engineRef.current = new SimulationEngine();
   }
 
-  // React local copy of the engine snapshot
+  // React local copy of engine snapshot
   const [snapshot, setSnapshot] = useState(() => engineRef.current.getSnapshot());
 
   // Subscribe to engine state changes
   useEffect(() => {
     const engine = engineRef.current;
-    
     const onStateChange = (newSnapshot) => {
       setSnapshot(newSnapshot);
     };
 
     engine.subscribe(onStateChange);
-    // Initial load
     engine.load(algorithm, grid, startNode, goalNode);
 
     return () => {
@@ -106,7 +104,7 @@ export default function App() {
     };
   }, []);
 
-  // Send telemetry to Flask server on simulation completion
+  // Telemetry endpoint submission
   const lastTelemetryStepRef = useRef(-1);
 
   useEffect(() => {
@@ -148,13 +146,12 @@ export default function App() {
     }
   }, [snapshot.status, snapshot.currentStep, snapshot.totalSteps, snapshot.pathFound, algorithm]);
 
-  // Reload engine when grid or nodes or selected algorithm changes
+  // Reload engine when selector updates
   useEffect(() => {
     engineRef.current.load(algorithm, grid, startNode, goalNode);
   }, [algorithm, grid, startNode, goalNode]);
 
-
-  // Paint handlers
+  // Paint handles
   const paintCell = useCallback((r, c, brush) => {
     if ((r === startNode.row && c === startNode.col) || (r === goalNode.row && c === goalNode.col)) return;
 
@@ -204,7 +201,6 @@ export default function App() {
     setDraggingNode(null);
   }, []);
 
-  // Presets and clear functions
   const handleGenerateRandom = useCallback((density) => {
     engineRef.current.reset();
     const nextGrid = [];
@@ -296,7 +292,7 @@ export default function App() {
     setGrid(nextGrid);
   }, [startNode, goalNode]);
 
-  // Playback wrapper triggers
+  // Actions
   const handlePlay = () => engineRef.current.play();
   const handlePause = () => engineRef.current.pause();
   const handleStep = () => engineRef.current.step();
@@ -307,7 +303,6 @@ export default function App() {
 
   const isInteractive = snapshot.status !== SimStatus.RUNNING;
 
-  // Build the operations log for the fullscreen modal sidebar
   const operationsLog = useMemo(() => {
     if (!snapshot || !snapshot.events) return [];
     return snapshot.events.slice(0, snapshot.currentStep + 1);
@@ -320,39 +315,32 @@ export default function App() {
   ];
 
   return (
-    <div className="flex min-h-screen bg-cyber-black text-slate-200 font-sans select-none overflow-x-hidden relative w-full transition-all">
-      {/* Stars backdrop effect */}
-      <div className="stars-container" />
-
-      {/* Orbital Grid overlay */}
+    <div className="flex min-h-screen bg-cyber-black text-slate-200 font-sans select-none overflow-x-hidden relative w-full">
+      {/* Structural coordinate mesh background mapping */}
       <div className="orbital-grid" />
 
-      {/* Nebula radial backdrop glow */}
-      <div className="fixed top-0 left-0 w-full h-full z-0 pointer-events-none bg-[radial-gradient(ellipse_at_center,rgba(56,189,248,0.03),transparent_50%)]" />
-
-      {/* Left Sidebar (Collapsible Control Module) */}
+      {/* LEFT Navigation Rail (Spacecraft Selector Console) */}
       <motion.aside
         layout
-        animate={{ width: isSidebarCollapsed ? 64 : 240 }}
-        transition={{ duration: 0.25, ease: 'easeInOut' }}
-        className="flex-shrink-0 z-20 bg-cyber-gray-dark/95 border-r border-border-purple flex flex-col justify-between select-none relative backdrop-blur-md shadow-2xl"
+        animate={{ width: isSidebarCollapsed ? 64 : 220 }}
+        transition={{ duration: 0.15, ease: 'easeOut' }}
+        className="flex-shrink-0 z-20 bg-cyber-gray-dark border-r border-cyber-gray-light flex flex-col justify-between select-none relative"
       >
         <div className="flex flex-col">
-          {/* Logo Section */}
+          {/* Rail Header */}
           <div className="h-16 flex items-center px-4 border-b border-cyber-gray-light gap-3 overflow-hidden select-none">
-            <div className="w-8 h-8 rounded-full bg-electric-cyan/10 border border-electric-cyan flex items-center justify-center relative shrink-0">
-              <Activity className="text-electric-cyan w-4 h-4 animate-pulse" />
-              <div className="absolute inset-0 rounded-full border border-electric-cyan/40 animate-ping" />
+            <div className="w-8 h-8 rounded border border-electric-cyan flex items-center justify-center relative shrink-0">
+              <Activity className="text-electric-cyan w-4.5 h-4.5" />
             </div>
             {!isSidebarCollapsed && (
-              <span className="font-cyber-header font-black text-xs text-white tracking-widest leading-none whitespace-nowrap text-glow-cyan">
-                MISSION CONTROL
+              <span className="font-cyber-header font-black text-sm text-white tracking-widest leading-none whitespace-nowrap">
+                SEC-OPS NAV
               </span>
             )}
           </div>
 
-          {/* Navigation Links */}
-          <nav className="flex flex-col gap-1.5 p-3">
+          {/* Tactile System Links */}
+          <nav className="flex flex-col gap-1.5 p-2 pt-4">
             {navItems.map((item) => {
               const Icon = item.icon;
               const isActive = currentTab === item.id;
@@ -360,19 +348,16 @@ export default function App() {
                 <button
                   key={item.id}
                   onClick={() => setCurrentTab(item.id)}
-                  className={`w-full flex items-center gap-3.5 px-3.5 py-2.5 rounded-lg border text-left text-xs font-cyber-header tracking-wider uppercase transition-all relative cursor-pointer ${
+                  className={`w-full flex items-center gap-4 p-3 rounded border text-left text-xs font-cyber-header tracking-wider uppercase transition-all relative cursor-pointer ${
                     isActive
-                      ? 'border-electric-cyan/40 text-white bg-electric-cyan/10 shadow-[0_0_12px_rgba(56,189,248,0.12)]'
-                      : 'border-transparent text-slate-400 hover:text-slate-200 hover:bg-cyber-gray-light/30'
+                      ? 'border-electric-cyan/40 text-white bg-cyber-gray'
+                      : 'border-transparent text-slate-500 hover:text-slate-300 hover:bg-cyber-gray/30'
                   }`}
                 >
-                  <Icon className={`w-4.5 h-4.5 ${isActive ? 'text-electric-cyan' : 'text-slate-500'}`} />
+                  <Icon className={`w-5 h-5 shrink-0 ${isActive ? 'text-electric-cyan' : 'text-slate-500'}`} />
                   {!isSidebarCollapsed && <span className="font-bold leading-none">{item.label}</span>}
                   {isActive && !isSidebarCollapsed && (
-                    <motion.div
-                      layoutId="activeGlow"
-                      className="absolute right-2 w-1.5 h-1.5 bg-electric-cyan rounded-full shadow-[0_0_8px_rgba(56,189,248,0.8)]"
-                    />
+                    <div className="absolute right-3 w-1.5 h-1.5 bg-electric-cyan rounded-full" />
                   )}
                 </button>
               );
@@ -380,244 +365,243 @@ export default function App() {
           </nav>
         </div>
 
-        {/* Sidebar Footer Controls */}
-        <div className="flex flex-col border-t border-cyber-gray-light p-3 gap-2 overflow-hidden">
-          {/* Light/Dark Toggle */}
+        {/* Console control footer */}
+        <div className="flex flex-col border-t border-cyber-gray-light p-2 gap-1.5 overflow-hidden">
           <button
             onClick={() => setTheme(prev => prev === 'dark' ? 'light' : 'dark')}
-            className="w-full flex items-center gap-3.5 px-3.5 py-2 hover:bg-cyber-gray-light/35 rounded-lg text-slate-400 hover:text-white transition-all text-xs font-cyber-header font-bold tracking-wider uppercase cursor-pointer"
+            className="w-full flex items-center gap-4 p-3 hover:bg-cyber-gray/30 rounded text-slate-500 hover:text-white transition-all text-xs font-cyber-header font-bold tracking-wider uppercase cursor-pointer"
           >
-            {theme === 'dark' ? <Sun className="w-4.5 h-4.5 text-slate-500 shrink-0" /> : <Moon className="w-4.5 h-4.5 text-slate-500 shrink-0" />}
+            {theme === 'dark' ? <Sun className="w-5 h-5 shrink-0" /> : <Moon className="w-5 h-5 shrink-0" />}
             {!isSidebarCollapsed && <span>{theme === 'dark' ? 'SOLAR MATRIX' : 'DEEP SPACE'}</span>}
           </button>
 
-          {/* Sidebar Collapse Toggle */}
           <button
             onClick={() => setIsSidebarCollapsed(prev => !prev)}
-            className="w-full flex items-center gap-3.5 px-3.5 py-2 hover:bg-cyber-gray-light/35 rounded-lg text-slate-400 hover:text-white transition-all text-xs font-cyber-header font-bold tracking-wider uppercase cursor-pointer"
+            className="w-full flex items-center gap-4 p-3 hover:bg-cyber-gray/30 rounded text-slate-500 hover:text-white transition-all text-xs font-cyber-header font-bold tracking-wider uppercase cursor-pointer"
           >
-            {isSidebarCollapsed ? <ChevronRight className="w-4.5 h-4.5 shrink-0" /> : <ChevronLeft className="w-4.5 h-4.5 shrink-0" />}
-            {!isSidebarCollapsed && <span>COLLAPSE PANEL</span>}
+            {isSidebarCollapsed ? <ChevronRight className="w-5 h-5 shrink-0" /> : <ChevronLeft className="w-5 h-5 shrink-0" />}
+            {!isSidebarCollapsed && <span>MINIMIZE RAIL</span>}
           </button>
         </div>
       </motion.aside>
 
       {/* Main Workspace Frame */}
       <main className="flex-grow flex flex-col min-w-0 relative z-10 min-h-screen">
-        {/* Top Navigation Bar inside Glass Compartments */}
-        <header className="h-16 flex justify-between items-center px-6 border-b border-cyber-gray-light bg-cyber-black/40 backdrop-blur-md select-none shrink-0">
+        {/* Subsystem Header Bar */}
+        <header className="h-16 flex justify-between items-center px-6 border-b border-cyber-gray-light bg-cyber-gray-dark select-none shrink-0">
           <div className="flex items-center gap-6">
-            {/* Status indicator */}
-            <div className="flex items-center gap-2 bg-cyber-black/40 border border-cyber-gray-light px-3 py-1.5 rounded-lg">
-              <span className="relative flex h-2 w-2">
-                <span className={`animate-ping absolute inline-flex h-full w-full rounded-full opacity-75 ${
-                  snapshot.status === SimStatus.RUNNING ? 'bg-electric-cyan' : 'bg-success'
-                }`} />
-                <span className={`relative inline-flex rounded-full h-2 w-2 ${
+            <div className="flex items-center gap-2.5 bg-cyber-black border border-cyber-gray-light px-3 py-1.5 rounded">
+              <span className="flex h-2 w-2">
+                <span className={`inline-flex rounded-full h-2 w-2 ${
                   snapshot.status === SimStatus.RUNNING ? 'bg-electric-cyan' : 'bg-success'
                 }`} />
               </span>
-              <span className="text-[10px] font-cyber-header text-slate-300 font-bold uppercase tracking-wider">
-                CORE STATUS: {snapshot.status === SimStatus.RUNNING ? 'RESOLVING TRANSIT' : 'READY'}
+              <span className="text-[10px] font-cyber-mono text-slate-300 font-bold uppercase tracking-widest">
+                SYS.STATUS: {snapshot.status === SimStatus.RUNNING ? 'COMPUTING ROUTE' : 'ACTIVE_STANDBY'}
               </span>
             </div>
 
-            {/* Dynamic UTC Clock */}
-            <div className="hidden sm:flex items-center gap-2 bg-cyber-black/40 border border-cyber-gray-light px-3 py-1.5 rounded-lg text-slate-400">
+            {/* Spacecraft UTC clock */}
+            <div className="hidden sm:flex items-center gap-2 bg-cyber-black border border-cyber-gray-light px-3 py-1.5 rounded text-slate-400">
               <Clock className="w-3.5 h-3.5" />
-              <span className="font-cyber-mono text-[9px] font-bold tracking-widest uppercase text-slate-300">
+              <span className="font-cyber-mono text-[9px] font-bold tracking-widest text-slate-300">
                 {utcTime}
               </span>
             </div>
 
-            {/* Active Systems */}
-            <div className="hidden md:flex items-center gap-2 pl-2">
+            {/* Linked hardware indicators */}
+            <div className="hidden md:flex items-center gap-2">
               <span className="text-[9px] font-cyber-header font-bold text-slate-500 tracking-wider">
-                SYSTEMS LINKED:
+                HARDWARE LINKS:
               </span>
-              <span className="bg-electric-cyan/10 border border-electric-cyan/20 text-electric-cyan font-cyber-mono text-[9px] px-2.5 py-0.5 rounded font-bold">
-                4 / 4 ONLINE
+              <span className="bg-cyber-gray border border-cyber-gray-light text-electric-cyan font-cyber-mono text-[9px] px-2 py-0.5 rounded font-bold">
+                TRANSCEIVER ONLINE
               </span>
             </div>
           </div>
 
-          <div className="flex items-center gap-4">
-            {/* Mock Search Input */}
-            <div className="relative hidden md:block">
-              <Search className="w-3.5 h-3.5 text-slate-600 absolute left-2.5 top-1/2 -translate-y-1/2" />
-              <input
-                type="text"
-                placeholder="SEARCH PORTAL..."
-                disabled
-                className="pl-8 pr-3 py-1 bg-cyber-black/50 border border-cyber-gray-light text-[9px] font-cyber-mono rounded placeholder:text-slate-600 focus:outline-none focus:border-electric-cyan w-48 text-slate-300"
-              />
+          {/* Commander Credentials block */}
+          <div className="flex items-center gap-2 border border-cyber-gray-light bg-cyber-black px-3 py-1.5 rounded">
+            <div className="w-6 h-6 rounded-sm border border-royal-blue bg-cyber-gray flex items-center justify-center shrink-0">
+              <User className="w-3.5 h-3.5 text-slate-400" />
             </div>
-
-            {/* User Profile Slot */}
-            <div className="flex items-center gap-2 border border-cyber-gray-light bg-cyber-black/40 px-3 py-1.5 rounded-lg">
-              <div className="w-6 h-6 rounded-full border border-royal-blue bg-cyber-gray flex items-center justify-center overflow-hidden shrink-0">
-                <User className="w-3.5 h-3.5 text-slate-400" />
-              </div>
-              <div className="hidden lg:flex flex-col text-left leading-none">
-                <span className="text-[9px] font-cyber-header font-bold text-white">CAPT. V. SHRESTHA</span>
-                <span className="text-[7.5px] font-cyber-mono text-slate-500">DEPUTY COMMANDER</span>
-              </div>
+            <div className="hidden lg:flex flex-col text-left leading-none">
+              <span className="text-[9px] font-cyber-header font-bold text-white">CDR. V. SHRESTHA</span>
+              <span className="text-[7.5px] font-cyber-mono text-slate-500">DEPUTY COMMANDER</span>
             </div>
           </div>
         </header>
 
-        {/* Tab workspace area */}
+        {/* Subsystem Workspace Slot */}
         <div className="flex-grow p-6 overflow-y-auto w-full max-w-7xl mx-auto flex flex-col">
           <AnimatePresence mode="wait">
             <motion.div
               key={currentTab}
-              initial={{ opacity: 0, y: 15 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -15 }}
-              transition={{ duration: 0.25, ease: 'easeOut' }}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.15 }}
               className="flex-grow flex flex-col gap-6"
             >
-              {/* Tab 1: Scanner View */}
+              {/* Tab 1: Hero Scanner HUD Split */}
               {currentTab === 'scanner' && (
-                <>
-                  <AlgorithmSelector
-                    selectedAlgorithm={algorithm}
-                    onSelect={setAlgorithm}
-                    disabled={!isInteractive}
-                  />
+                <div className="flex-grow grid grid-cols-1 xl:grid-cols-10 gap-6 items-start">
+                  
+                  {/* CENTER COLUMN: Hero main scanner viewport (60% width = 6 columns) */}
+                  <div className="xl:col-span-6 flex flex-col gap-5">
+                    
+                    {/* Visual identity selectors */}
+                    <AlgorithmSelector
+                      selectedAlgorithm={algorithm}
+                      onSelect={setAlgorithm}
+                      disabled={!isInteractive}
+                    />
 
-                  <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
-                    {/* Left: Editor + Inspector */}
-                    <div className="lg:col-span-4 flex flex-col gap-5">
-                      <TerrainEditor
-                        activeBrush={activeBrush}
-                        onBrushChange={setActiveBrush}
-                        onGenerateRandom={handleGenerateRandom}
-                        onLoadPreset={handleLoadPreset}
-                        onClearAll={handleClearAll}
-                        disabled={!isInteractive}
-                      />
-                      <AlgorithmInspector snapshot={snapshot} />
-                      <DataStructureVisualizer snapshot={snapshot} />
-                    </div>
+                    {/* Viewport Scanner control module */}
+                    <div className="control-module">
+                      <div className="hud-bracket-tl" />
+                      <div className="hud-bracket-tr" />
+                      <div className="hud-bracket-bl" />
+                      <div className="hud-bracket-br" />
 
-                    {/* Right: Grid scanner viewport */}
-                    <div className="lg:col-span-8 flex flex-col gap-5">
-                      <div className="flex flex-col gap-2 p-4 rounded-lg shadow-2xl relative glass-panel">
-                        <div className="flex justify-between items-center border-b border-cyber-gray-light pb-2 select-none font-cyber-header">
-                          <h2 className="text-[11px] font-bold text-white tracking-wider flex items-center gap-2">
-                            <span className="w-1.5 h-1.5 bg-electric-cyan rounded-full animate-ping"></span>
-                            ORBITAL SECTOR SCANNER VIEWPORT
-                          </h2>
-                          <div className="font-cyber-mono text-[9px] text-electric-cyan tracking-widest text-glow-cyan uppercase font-bold">
-                            LINKING: {algorithm.toUpperCase()}
-                          </div>
-                        </div>
-
-                        <div className="h-[420px] w-full relative">
-                          <GridCanvas
-                            grid={grid}
-                            snapshot={snapshot}
-                            startNode={startNode}
-                            goalNode={goalNode}
-                            onCellClick={paintCell}
-                            onCellDrag={handleCellDrag}
-                            onDragStart={handleDragStart}
-                            onDragEnd={handleDragEnd}
-                            activeBrush={activeBrush}
-                            isInteractive={isInteractive}
-                          />
-                        </div>
-
-                        {/* Legend labels */}
-                        <div className="grid grid-cols-5 gap-1.5 text-[8px] font-cyber-mono text-slate-400 bg-cyber-black/40 p-2.5 rounded border border-cyber-gray-light/60 text-center select-none shadow-inner font-semibold">
-                          <div className="flex items-center justify-center gap-1.5"><span className="w-2.5 h-2.5 block border border-electric-cyan bg-electric-cyan/20"></span> TX HUB</div>
-                          <div className="flex items-center justify-center gap-1.5"><span className="w-2.5 h-2.5 block border border-royal-blue bg-royal-blue/20"></span> RX PROBE</div>
-                          <div className="flex items-center justify-center gap-1.5"><span className="w-2.5 h-2.5 block border border-critical bg-critical/15 bg-[repeating-linear-gradient(45deg,transparent,transparent_2px,#ff5d73_2px,#ff5d73_3px)]"></span> DEBRIS (INF)</div>
-                          <div className="flex items-center justify-center gap-1.5"><span className="w-2.5 h-2.5 block border border-warning bg-warning/10 bg-[repeating-linear-gradient(-45deg,transparent,transparent_2px,#ffb547_2px,#ffb547_3px)]"></span> NEBULA (3x)</div>
-                          <div className="flex items-center justify-center gap-1.5"><span className="w-2.5 h-2.5 block border border-deep-violet bg-deep-violet/10 bg-[repeating-linear-gradient(-45deg,transparent,transparent_2px,#7c5cff_2px,#7c5cff_3px)]"></span> GRAVITY (5x)</div>
+                      <div className="control-module-header">
+                        <h2 className="text-xs font-cyber-header font-bold text-white tracking-widest flex items-center gap-2">
+                          <span className="w-1.5 h-1.5 bg-electric-cyan rounded-full" />
+                          ORBITAL SECTOR SCANNER VIEWPORT
+                        </h2>
+                        <div className="font-cyber-mono text-[9px] text-electric-cyan tracking-widest uppercase font-bold">
+                          NAV_MAP_SECTOR_LINK: {algorithm.toUpperCase()}
                         </div>
                       </div>
 
-                      {/* Mini Tree Viewer */}
-                      <div 
-                        className="p-3 rounded-lg shadow-2xl relative h-[250px] group flex flex-col cursor-pointer transition-all glass-panel glass-card-hover"
-                        onClick={() => setIsTreeFullscreen(true)}
-                      >
-                        <div className="absolute top-2 right-2 z-20 text-slate-500 group-hover:text-electric-cyan transition-colors">
-                          <Maximize2 className="w-4 h-4" />
-                        </div>
-                        <div className="text-[9px] font-cyber-header font-bold text-slate-400 mb-2 border-b border-cyber-gray-light pb-1 select-none">
-                          TRAVERSAL PATH HIERARCHY TREE (CLICK TO EXPAND HUD)
-                        </div>
-                        <div className="flex-grow">
-                          <TreePanel
-                            snapshot={snapshot}
-                            isFullscreen={false}
-                          />
-                        </div>
+                      <div className="h-[430px] w-full relative">
+                        <GridCanvas
+                          grid={grid}
+                          snapshot={snapshot}
+                          startNode={startNode}
+                          goalNode={goalNode}
+                          onCellClick={paintCell}
+                          onCellDrag={handleCellDrag}
+                          onDragStart={handleDragStart}
+                          onDragEnd={handleDragEnd}
+                          activeBrush={activeBrush}
+                          isInteractive={isInteractive}
+                        />
+                      </div>
+
+                      {/* Legend sectors */}
+                      <div className="grid grid-cols-5 gap-1.5 text-[8.5px] font-cyber-mono text-slate-400 bg-cyber-black p-2.5 mt-3 rounded border border-cyber-gray-light text-center font-semibold select-none">
+                        <div className="flex items-center justify-center gap-1.5"><span className="w-2.5 h-2.5 block border border-electric-cyan bg-electric-cyan/20"></span> TX HUB</div>
+                        <div className="flex items-center justify-center gap-1.5"><span className="w-2.5 h-2.5 block border border-royal-blue bg-royal-blue/20"></span> RX PROBE</div>
+                        <div className="flex items-center justify-center gap-1.5"><span className="w-2.5 h-2.5 block border border-critical bg-critical/15 bg-[repeating-linear-gradient(45deg,transparent,transparent_2px,#ff5d73_2px,#ff5d73_3px)]"></span> DEBRIS (INF)</div>
+                        <div className="flex items-center justify-center gap-1.5"><span className="w-2.5 h-2.5 block border border-warning bg-warning/10 bg-[repeating-linear-gradient(-45deg,transparent,transparent_2px,#ffb547_2px,#ffb547_3px)]"></span> NEBULA (3x)</div>
+                        <div className="flex items-center justify-center gap-1.5"><span className="w-2.5 h-2.5 block border border-deep-violet bg-deep-violet/10 bg-[repeating-linear-gradient(-45deg,transparent,transparent_2px,#8e84ff_2px,#8e84ff_3px)]"></span> GRAVITY (5x)</div>
+                      </div>
+                    </div>
+
+                    {/* Simulation timeline & scrubbers */}
+                    <div className="control-module">
+                      <div className="hud-bracket-tl" />
+                      <div className="hud-bracket-tr" />
+                      <div className="hud-bracket-bl" />
+                      <div className="hud-bracket-br" />
+                      <SimulationControls
+                        status={snapshot.status}
+                        currentStep={snapshot.currentStep}
+                        totalSteps={snapshot.totalSteps}
+                        speed={snapshot.speed}
+                        onPlay={handlePlay}
+                        onPause={handlePause}
+                        onStep={handleStep}
+                        onStepBack={handleStepBack}
+                        onReset={handleReset}
+                        onSpeedChange={handleSpeedChange}
+                      />
+                      <div className="mt-4">
+                        <Timeline
+                          events={snapshot.events}
+                          currentStep={snapshot.currentStep}
+                          totalSteps={snapshot.totalSteps}
+                          onSeek={handleSeek}
+                          status={snapshot.status}
+                        />
                       </div>
                     </div>
                   </div>
 
-                  {/* Playback & Timeline scrubber */}
-                  <footer className="w-full flex flex-col gap-4">
-                    <SimulationControls
-                      status={snapshot.status}
-                      currentStep={snapshot.currentStep}
-                      totalSteps={snapshot.totalSteps}
-                      speed={snapshot.speed}
-                      onPlay={handlePlay}
-                      onPause={handlePause}
-                      onStep={handleStep}
-                      onStepBack={handleStepBack}
-                      onReset={handleReset}
-                      onSpeedChange={handleSpeedChange}
+                  {/* RIGHT COLUMN: Telemetry Intelligence modules (40% width = 4 columns) */}
+                  <div className="xl:col-span-4 flex flex-col gap-5">
+                    
+                    {/* Brush Terrain paint module */}
+                    <TerrainEditor
+                      activeBrush={activeBrush}
+                      onBrushChange={setActiveBrush}
+                      onGenerateRandom={handleGenerateRandom}
+                      onLoadPreset={handleLoadPreset}
+                      onClearAll={handleClearAll}
+                      disabled={!isInteractive}
                     />
 
-                    <Timeline
-                      events={snapshot.events}
-                      currentStep={snapshot.currentStep}
-                      totalSteps={snapshot.totalSteps}
-                      onSeek={handleSeek}
-                      status={snapshot.status}
-                    />
-                  </footer>
-                </>
+                    {/* Numeric stats readout */}
+                    <AlgorithmInspector snapshot={snapshot} />
+
+                    {/* Priority Queue heap registers */}
+                    <DataStructureVisualizer snapshot={snapshot} />
+
+                    {/* Compact Tree radar preview module */}
+                    <div 
+                      className="control-module cursor-pointer h-[240px] group flex flex-col"
+                      onClick={() => setIsTreeFullscreen(true)}
+                    >
+                      <div className="hud-bracket-tl" />
+                      <div className="hud-bracket-tr" />
+                      <div className="hud-bracket-bl" />
+                      <div className="hud-bracket-br" />
+                      
+                      <div className="absolute top-3 right-3 text-slate-500 group-hover:text-electric-cyan transition-colors">
+                        <Maximize2 className="w-4.5 h-4.5" />
+                      </div>
+                      
+                      <div className="text-[9px] font-cyber-header font-bold text-slate-400 mb-2 border-b border-cyber-gray-light pb-1 select-none">
+                        VECTOR SEARCH PATH MATRIX (CLICK HUD TO FULLSCREEN)
+                      </div>
+                      <div className="flex-grow">
+                        <TreePanel snapshot={snapshot} isFullscreen={false} />
+                      </div>
+                    </div>
+
+                  </div>
+                </div>
               )}
 
-              {/* Tab 2: Fullpage Hierarchy Tree HUD */}
+              {/* Tab 2: Full-spectrum search tree HUD */}
               {currentTab === 'tree' && (
                 <div className="flex-grow flex flex-col gap-3">
                   <div className="flex justify-between items-center border-b border-cyber-gray-light pb-2">
                     <h2 className="text-base font-cyber-header font-black text-white tracking-wider">
-                      TRAVERSAL SEARCH TREE PORTAL
+                      TRAVERSAL PATH HIERARCHY RADAR PORTAL
                     </h2>
                     <div className="text-[10px] font-cyber-mono text-slate-400">
-                      ◆ TOTAL BRANCH NODES: {snapshot.treeNodes?.size || 0} | ↕ MAX DEPTH LEVEL: {snapshot.metrics?.maxDepth || 0}
+                      ◆ TELEMETRY BRANCH NODES: {snapshot.treeNodes?.size || 0} | ↕ RADAR DEPTH: {snapshot.metrics?.maxDepth || 0}
                     </div>
                   </div>
-                  <div className="flex-grow bg-cyber-black rounded-lg min-h-[500px] relative flex flex-col md:flex-row border border-cyber-gray-light overflow-hidden glass-panel">
-                    {/* SVG Render Tree */}
+                  
+                  <div className="flex-grow bg-cyber-black rounded min-h-[500px] relative flex flex-col md:flex-row border border-cyber-gray-light overflow-hidden">
                     <div className="w-full md:w-3/4 h-full relative p-5 flex flex-col">
-                      <div className="flex-grow bg-cyber-black/35 rounded border border-cyber-gray-light">
-                        <TreePanel
-                          snapshot={snapshot}
-                          isFullscreen={true}
-                        />
+                      <div className="flex-grow bg-cyber-gray-dark/50 rounded border border-cyber-gray-light">
+                        <TreePanel snapshot={snapshot} isFullscreen={true} />
                       </div>
                     </div>
 
-                    {/* Operations Log Sidebar */}
-                    <div className="w-full md:w-1/4 h-full border-t md:border-t-0 md:border-l border-cyber-gray-light bg-cyber-black/40 p-4 flex flex-col">
+                    <div className="w-full md:w-1/4 h-full border-t md:border-t-0 md:border-l border-cyber-gray-light bg-cyber-gray-dark p-4 flex flex-col">
                       <h3 className="font-cyber-header text-[10px] text-slate-300 mb-3 tracking-widest border-b border-cyber-gray-light pb-2">
-                        ALGORITHM OPERATIONS LOG
+                        SECTOR OPERATIONS REGISTER
                       </h3>
-                      <div className="flex-grow overflow-y-auto pr-1 font-cyber-mono text-[9px] flex flex-col gap-1.5 scrollbar-thin max-h-[480px]">
+                      <div className="flex-grow overflow-y-auto pr-1 font-cyber-mono text-[9px] flex flex-col gap-1.5 max-h-[480px]">
                         {operationsLog.map((evt, idx) => (
                           <div
                             key={idx}
-                            className="bg-cyber-gray-dark/50 p-2 border-l border-electric-cyan text-slate-400 flex flex-col gap-0.5"
+                            className="bg-cyber-black p-2 border-l border-electric-cyan text-slate-400 flex flex-col gap-0.5"
                           >
                             <div className="flex justify-between text-[8px] text-slate-500 font-bold mb-0.5">
                               <span>STEP {String(idx + 1).padStart(3, '0')}</span>
@@ -630,7 +614,7 @@ export default function App() {
                         )).reverse()}
                         {operationsLog.length === 0 && (
                           <div className="text-slate-600 text-center py-20 font-cyber-mono">
-                            AWAITING MISSION DATA...
+                            AWAITING ROUTE TELEMETRY...
                           </div>
                         )}
                       </div>
@@ -639,7 +623,7 @@ export default function App() {
                 </div>
               )}
 
-              {/* Tab 3: Telemetry Analysis Dashboard */}
+              {/* Tab 3: Telemetry SQL Analytics HUD */}
               {currentTab === 'telemetry' && (
                 <TelemetryDashboard />
               )}
@@ -648,51 +632,41 @@ export default function App() {
         </div>
       </main>
 
-      {/* FULLSCREEN TREE PANEL INTERACTIVE HUD MODAL (from Scanner View) */}
+      {/* FULLSCREEN TREE RADAR HUD DIALOG */}
       <AnimatePresence>
         {isTreeFullscreen && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 z-50 bg-cyber-black/90 backdrop-blur-sm p-4 md:p-8 flex items-center justify-center select-none"
-          >
-            <div className="w-full h-full bg-cyber-gray-dark border border-electric-cyan/40 rounded-lg shadow-[0_0_50px_rgba(56,189,248,0.15)] flex flex-col md:flex-row relative overflow-hidden">
+          <div className="fixed inset-0 z-50 bg-cyber-black/95 p-4 md:p-8 flex items-center justify-center select-none">
+            <div className="w-full h-full bg-cyber-gray-dark border border-electric-cyan/30 rounded flex flex-col md:flex-row relative overflow-hidden">
               <button
                 onClick={() => setIsTreeFullscreen(false)}
-                className="absolute top-4 right-4 z-50 text-slate-400 hover:text-white bg-cyber-black p-2 rounded-full border border-slate-700 cursor-pointer transition-colors"
+                className="absolute top-4 right-4 z-50 text-slate-400 hover:text-white bg-cyber-black p-2 rounded border border-cyber-gray-light cursor-pointer transition-colors"
               >
                 <X className="w-6 h-6" />
               </button>
 
-              {/* Main SVG Container */}
               <div className="w-full md:w-3/4 h-full relative p-5 flex flex-col gap-3">
                 <div className="flex justify-between items-center border-b border-cyber-gray-light pb-2">
                   <h2 className="text-lg font-cyber-header font-black text-white tracking-wider uppercase">
-                    FULL SPECTRUM PATH TRAVERSAL SEARCH TREE
+                    FULL SPECTRUM PATH TRAVERSAL RADAR SCANNER
                   </h2>
                   <div className="text-xs font-cyber-mono text-slate-400 mr-12">
                     ◆ Total Nodes: {snapshot.treeNodes?.size || 0} | ↕ Depth: {snapshot.metrics?.maxDepth || 0}
                   </div>
                 </div>
                 <div className="flex-grow bg-cyber-black rounded border border-cyber-gray-light">
-                  <TreePanel
-                    snapshot={snapshot}
-                    isFullscreen={true}
-                  />
+                  <TreePanel snapshot={snapshot} isFullscreen={true} />
                 </div>
               </div>
 
-              {/* Operations logs Sidebar */}
-              <div className="w-full md:w-1/4 h-full border-t md:border-t-0 md:border-l border-cyber-gray-light bg-cyber-black/40 p-4 flex flex-col">
+              <div className="w-full md:w-1/4 h-full border-t md:border-t-0 md:border-l border-cyber-gray-light bg-cyber-gray-dark p-4 flex flex-col">
                 <h3 className="font-cyber-header text-xs text-slate-200 mb-3 tracking-widest border-b border-cyber-gray-light pb-2">
-                  ALGORITHM OPERATIONS LOG
+                  SECTOR OPERATIONS REGISTER
                 </h3>
-                <div className="flex-grow overflow-y-auto pr-1 font-cyber-mono text-[9px] flex flex-col gap-1.5 scrollbar-thin">
+                <div className="flex-grow overflow-y-auto pr-1 font-cyber-mono text-[9px] flex flex-col gap-1.5">
                   {operationsLog.map((evt, idx) => (
                     <div
                       key={idx}
-                      className="bg-cyber-gray-dark/50 p-2 border-l border-electric-cyan text-slate-400 flex flex-col gap-0.5"
+                      className="bg-cyber-black p-2 border-l border-electric-cyan text-slate-400 flex flex-col gap-0.5"
                     >
                       <div className="flex justify-between text-[8px] text-slate-500 font-bold mb-0.5">
                         <span>STEP {String(idx + 1).padStart(3, '0')}</span>
@@ -705,13 +679,13 @@ export default function App() {
                   )).reverse()}
                   {operationsLog.length === 0 && (
                     <div className="text-slate-600 text-center py-20 font-cyber-mono">
-                      AWAITING MISSION DATA...
+                      AWAITING ROUTE TELEMETRY...
                     </div>
                   )}
                 </div>
               </div>
             </div>
-          </motion.div>
+          </div>
         )}
       </AnimatePresence>
     </div>

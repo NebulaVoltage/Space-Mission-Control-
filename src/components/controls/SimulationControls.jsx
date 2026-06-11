@@ -17,72 +17,77 @@ export default function SimulationControls({
   const isComplete = status === SimStatus.COMPLETE;
   const isIdle = status === SimStatus.IDLE;
 
-  // Formatting steps
   const displayStep = currentStep === -1 ? 0 : currentStep + 1;
   const displayTotal = totalSteps;
 
   return (
-    <div className="glass-card px-4 py-3 flex flex-col md:flex-row items-center justify-between gap-4 shadow-xl select-none w-full relative overflow-hidden">
-      {/* Step Counter (Left) */}
-      <div className="flex items-center gap-3">
+    <div className="flex flex-col md:flex-row items-center justify-between gap-4 p-4 bg-cyber-gray-dark border border-cyber-gray-light rounded select-none w-full relative">
+      {/* HUD Corner Brackets */}
+      <div className="hud-bracket-tl" />
+      <div className="hud-bracket-tr" />
+      <div className="hud-bracket-bl" />
+      <div className="hud-bracket-br" />
+
+      {/* Step Counter Readout */}
+      <div className="flex items-center gap-4">
         <div className="flex flex-col">
-          <span className="text-[9px] font-cyber-header uppercase tracking-wider text-slate-400">SIMULATION STEP</span>
-          <span className="font-cyber-mono text-sm text-primary-purple font-bold tracking-widest min-w-32">
+          <span className="text-[9px] font-cyber-header uppercase tracking-widest text-slate-500">RESOLVING SECTOR VECTORS</span>
+          <span className="font-cyber-mono text-base text-white font-bold tracking-widest min-w-36">
             STEP {String(displayStep).padStart(3, '0')} / {String(displayTotal).padStart(3, '0')}
           </span>
         </div>
         
         {isComplete && (
-          <span className="bg-neon-green/10 border border-neon-green/35 text-neon-green font-cyber-header text-[9px] font-bold px-2 py-0.5 rounded tracking-widest animate-pulse">
-            COMPLETE
+          <span className="bg-success/10 border border-success/30 text-success font-cyber-header text-[9px] font-bold px-2.5 py-0.5 rounded tracking-widest">
+            VECTOR_RESOLVED
           </span>
         )}
         {isPlaying && (
-          <span className="bg-primary-purple/10 border border-primary-purple/35 text-primary-purple font-cyber-header text-[9px] font-bold px-2 py-0.5 rounded tracking-widest animate-pulse">
-            RUNNING
+          <span className="bg-electric-cyan/10 border border-electric-cyan/30 text-electric-cyan font-cyber-header text-[9px] font-bold px-2.5 py-0.5 rounded tracking-widest">
+            VECTOR_RESOLVING
           </span>
         )}
         {status === SimStatus.PAUSED && (
-          <span className="bg-neon-amber/10 border border-neon-amber/35 text-accent-violet font-cyber-header text-[9px] font-bold px-2 py-0.5 rounded tracking-widest">
-            PAUSED
+          <span className="bg-royal-blue/10 border border-royal-blue/30 text-deep-violet font-cyber-header text-[9px] font-bold px-2.5 py-0.5 rounded tracking-widest">
+            VECTOR_PAUSED
           </span>
         )}
       </div>
 
-      {/* Transport Playback Buttons (Center) */}
-      <div className="flex items-center gap-1.5 bg-cyber-black/55 border border-cyber-gray-light p-1.5 rounded-lg">
-        {/* Reset / Jump to start */}
+      {/* Tactile Playback Controls */}
+      <div className="flex items-center gap-1.5 bg-cyber-gray border border-cyber-gray-light p-1.5 rounded">
+        {/* Reset */}
         <button
           onClick={onReset}
           disabled={isIdle || isPlaying}
           title="Reset Simulation"
-          className="p-2 rounded bg-cyber-gray/40 border border-cyber-gray-light/60 text-slate-400 hover:text-white hover:border-slate-500 disabled:opacity-30 disabled:hover:text-slate-400 disabled:hover:border-cyber-gray-light/60 cursor-pointer transition-all"
+          className="p-2.5 rounded bg-cyber-gray-dark border border-cyber-gray-light text-slate-400 hover:text-white hover:border-electric-cyan disabled:opacity-25 transition-all cursor-pointer"
         >
-          <SkipBack className="w-4 h-4" />
+          <SkipBack className="w-4.5 h-4.5" />
         </button>
 
         {/* Step Back */}
         <button
           onClick={onStepBack}
           disabled={isIdle || isPlaying || displayStep <= 0}
-          title="Step Backward (Rewind)"
-          className="p-2 rounded bg-cyber-gray/40 border border-cyber-gray-light/60 text-slate-400 hover:text-white hover:border-slate-500 disabled:opacity-30 disabled:hover:text-slate-400 disabled:hover:border-cyber-gray-light/60 cursor-pointer transition-all"
+          title="Step Backward"
+          className="p-2.5 rounded bg-cyber-gray-dark border border-cyber-gray-light text-slate-400 hover:text-white hover:border-electric-cyan disabled:opacity-25 transition-all cursor-pointer"
         >
-          <StepBack className="w-4 h-4" />
+          <StepBack className="w-4.5 h-4.5" />
         </button>
 
-        {/* Play / Pause Toggle */}
+        {/* Play/Pause */}
         <button
           onClick={isPlaying ? onPause : onPlay}
           disabled={isComplete && !isPlaying}
           title={isPlaying ? "Pause Simulation" : "Start/Resume Simulation"}
-          className={`p-3 rounded-lg border cursor-pointer transition-all ${
+          className={`p-3 rounded border font-bold uppercase tracking-wider text-xs transition-all cursor-pointer ${
             isPlaying
-              ? 'bg-primary-purple/15 border-primary-purple text-primary-purple shadow-[0_0_15px_rgba(139,92,246,0.2)]'
-              : 'bg-primary-purple hover:bg-primary-purple/90 border-transparent text-white hover:scale-105'
-          } disabled:opacity-30 disabled:scale-100 disabled:cursor-not-allowed`}
+              ? 'bg-royal-blue/15 border-royal-blue text-deep-violet'
+              : 'bg-royal-blue hover:bg-royal-blue/85 border-transparent text-white'
+          } disabled:opacity-25`}
         >
-          {isPlaying ? <Pause className="w-4 h-4 fill-primary-purple" /> : <Play className="w-4 h-4 fill-white" />}
+          {isPlaying ? <Pause className="w-5 h-5 fill-deep-violet" /> : <Play className="w-5 h-5 fill-white" />}
         </button>
 
         {/* Step Forward */}
@@ -90,19 +95,19 @@ export default function SimulationControls({
           onClick={onStep}
           disabled={isPlaying || isComplete || displayTotal === 0}
           title="Step Forward"
-          className="p-2 rounded bg-cyber-gray/40 border border-cyber-gray-light/60 text-slate-400 hover:text-white hover:border-slate-500 disabled:opacity-30 disabled:hover:text-slate-400 disabled:hover:border-cyber-gray-light/60 cursor-pointer transition-all"
+          className="p-2.5 rounded bg-cyber-gray-dark border border-cyber-gray-light text-slate-400 hover:text-white hover:border-electric-cyan disabled:opacity-25 transition-all cursor-pointer"
         >
-          <StepForward className="w-4 h-4" />
+          <StepForward className="w-4.5 h-4.5" />
         </button>
       </div>
 
-      {/* Speed Slider (Right) */}
-      <div className="flex items-center gap-3 w-full md:w-auto">
-        <Gauge className="w-4 h-4 text-slate-500 shrink-0" />
-        <div className="flex flex-col w-full md:w-36">
-          <div className="flex justify-between items-center text-[9px] font-cyber-header uppercase tracking-wider text-slate-500 mb-0.5">
-            <span>FREQUENCY</span>
-            <span className="font-cyber-mono text-primary-purple font-bold">{speed} Hz</span>
+      {/* Calibration Slider */}
+      <div className="flex items-center gap-3.5 w-full md:w-auto">
+        <Gauge className="w-4.5 h-4.5 text-slate-500 shrink-0" />
+        <div className="flex flex-col w-full md:w-44">
+          <div className="flex justify-between items-center text-[9px] font-cyber-header uppercase tracking-widest text-slate-500 mb-0.5">
+            <span>RESOLVING_FREQUENCY</span>
+            <span className="font-cyber-mono text-electric-cyan font-bold">{speed} Hz</span>
           </div>
           <input
             type="range"
@@ -110,7 +115,7 @@ export default function SimulationControls({
             max="100"
             value={speed}
             onChange={(e) => onSpeedChange && onSpeedChange(parseInt(e.target.value))}
-            className="w-full accent-primary-purple cursor-pointer bg-cyber-black rounded-lg h-1.5 appearance-none border border-cyber-gray-light"
+            className="w-full accent-royal-blue cursor-pointer bg-cyber-black rounded h-1 appearance-none border border-cyber-gray-light"
           />
         </div>
       </div>

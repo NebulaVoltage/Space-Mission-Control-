@@ -114,9 +114,14 @@ export default function TelemetryDashboard() {
   return (
     <div className="flex flex-col gap-6 w-full text-slate-200">
       {/* Overview stats header */}
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-cyber-gray-dark border border-cyber-gray-light p-4 rounded-lg shadow-xl relative overflow-hidden glass-panel">
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 control-module relative overflow-hidden">
+        <div className="hud-bracket-tl" />
+        <div className="hud-bracket-tr" />
+        <div className="hud-bracket-bl" />
+        <div className="hud-bracket-br" />
+
         <div className="flex items-center gap-3">
-          <Database className="text-primary-purple w-6 h-6 animate-pulse" />
+          <Database className="text-royal-blue w-6 h-6 animate-pulse" />
           <div className="flex flex-col">
             <h2 className="font-cyber-header font-extrabold text-base tracking-wider text-white">
               VECTOR TELEMETRY CONTROL CENTER
@@ -128,7 +133,7 @@ export default function TelemetryDashboard() {
         </div>
 
         {error && (
-          <div className="flex items-center gap-2 bg-amber-500/10 border border-amber-500/30 text-amber-400 text-[10px] px-3 py-1.5 rounded font-cyber-mono">
+          <div className="flex items-center gap-2 bg-critical/10 border border-critical/30 text-critical text-[10px] px-3 py-1.5 rounded font-cyber-mono">
             <AlertCircle className="w-3.5 h-3.5" />
             <span>{error}</span>
           </div>
@@ -137,7 +142,7 @@ export default function TelemetryDashboard() {
         <button
           onClick={fetchTelemetry}
           disabled={loading}
-          className="flex items-center gap-1.5 px-3 py-1.5 bg-cyber-black border border-cyber-gray-light text-[10px] font-cyber-header tracking-wider hover:border-primary-purple hover:text-white rounded transition-all cursor-pointer disabled:opacity-40"
+          className="flex items-center gap-1.5 px-3 py-1.5 sci-fi-button text-[10px] font-cyber-header tracking-wider disabled:opacity-40"
         >
           <RotateCw className={`w-3.5 h-3.5 ${loading ? 'animate-spin' : ''}`} />
           <span>SYNCHRONIZE CORE</span>
@@ -147,14 +152,18 @@ export default function TelemetryDashboard() {
       {/* Aggregate Cards Grid */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         {[
-          { label: 'TOTAL MISSION SOLVES', value: totalRuns, desc: 'Logged telemetry runs', icon: Database, color: 'text-primary-purple' },
-          { label: 'AVG ROUTING EFFICIENCY', value: `${avgEfficiency}%`, desc: 'Optimality ratio', icon: TrendingUp, color: 'text-accent-violet' },
-          { label: 'LINK SUCCESS RATE', value: `${successRate}%`, desc: 'Successful routing links', icon: BarChart3, color: 'text-emerald-400' },
-          { label: 'ACTIVE DATABASES', value: '1 / 1', desc: 'SQLite active core', icon: Sliders, color: 'text-blue-400' }
+          { label: 'TOTAL MISSION SOLVES', value: totalRuns, desc: 'Logged telemetry runs', icon: Database, color: 'text-royal-blue' },
+          { label: 'AVG ROUTING EFFICIENCY', value: `${avgEfficiency}%`, desc: 'Optimality ratio', icon: TrendingUp, color: 'text-deep-violet' },
+          { label: 'LINK SUCCESS RATE', value: `${successRate}%`, desc: 'Successful routing links', icon: BarChart3, color: 'text-success' },
+          { label: 'ACTIVE DATABASES', value: '1 / 1', desc: 'SQLite active core', icon: Sliders, color: 'text-electric-cyan' }
         ].map((c, i) => {
           const Icon = c.icon;
           return (
-            <div key={i} className="glass-card p-4 flex flex-col justify-center relative overflow-hidden glass-card-hover">
+            <div key={i} className="control-module p-4 flex flex-col justify-center relative overflow-hidden">
+              <div className="hud-bracket-tl" />
+              <div className="hud-bracket-tr" />
+              <div className="hud-bracket-bl" />
+              <div className="hud-bracket-br" />
               <span className="text-[8px] font-cyber-header tracking-widest text-slate-400 mb-1">{c.label}</span>
               <span className="text-xl font-black font-cyber-mono text-white mb-0.5">{c.value}</span>
               <span className="text-[9px] text-slate-500 font-cyber-mono leading-none">{c.desc}</span>
@@ -167,12 +176,17 @@ export default function TelemetryDashboard() {
       {/* Charts Panel */}
       <div className="grid grid-cols-1 md:grid-cols-12 gap-5 w-full">
         {/* Line Chart: Efficiency Score */}
-        <div className="md:col-span-7 glass-card p-4 flex flex-col gap-3 h-[250px] relative">
+        <div className="md:col-span-7 control-module p-4 flex flex-col gap-3 h-[250px] relative overflow-hidden">
+          <div className="hud-bracket-tl" />
+          <div className="hud-bracket-tr" />
+          <div className="hud-bracket-bl" />
+          <div className="hud-bracket-br" />
+
           <div className="flex justify-between items-center border-b border-cyber-gray-light pb-2 select-none">
             <span className="font-cyber-header text-[10px] text-slate-300 font-bold uppercase tracking-wider">
               EFFICIENCY PERFORMANCE MATRIX
             </span>
-            <span className="font-cyber-mono text-[9px] text-primary-purple">
+            <span className="font-cyber-mono text-[9px] text-royal-blue font-bold">
               LAST 10 MISSION SOLVES
             </span>
           </div>
@@ -184,13 +198,13 @@ export default function TelemetryDashboard() {
               <svg viewBox={`0 0 ${chartWidth} ${chartHeight}`} className="w-full h-full block overflow-visible">
                 <defs>
                   <linearGradient id="purple-area" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stopColor="#8b5cf6" stopOpacity="0.25" />
-                    <stop offset="100%" stopColor="#8b5cf6" stopOpacity="0.00" />
+                    <stop offset="0%" stopColor="#6d5dff" stopOpacity="0.25" />
+                    <stop offset="100%" stopColor="#6d5dff" stopOpacity="0.00" />
                   </linearGradient>
                   <linearGradient id="purple-line" x1="0" y1="0" x2="1" y2="0">
-                    <stop offset="0%" stopColor="#8b5cf6" />
-                    <stop offset="50%" stopColor="#a855f7" />
-                    <stop offset="100%" stopColor="#c084fc" />
+                    <stop offset="0%" stopColor="#6d5dff" />
+                    <stop offset="50%" stopColor="#8e84ff" />
+                    <stop offset="100%" stopColor="#3abeff" />
                   </linearGradient>
                 </defs>
 
@@ -200,7 +214,7 @@ export default function TelemetryDashboard() {
                   return (
                     <g key={val} className="opacity-20">
                       <line x1={paddingX} y1={y} x2={chartWidth - paddingX} y2={y} stroke="#1f2533" strokeDasharray="2 3" />
-                      <text x={paddingX - 10} y={y + 3} textAnchor="end" fill="#b4b8c5" className="font-cyber-mono text-[7px]">
+                      <text x={paddingX - 10} y={y + 3} textAnchor="end" fill="#9ca3af" className="font-cyber-mono text-[7px]">
                         {val}%
                       </text>
                     </g>
@@ -223,7 +237,7 @@ export default function TelemetryDashboard() {
                     cx={p.x}
                     cy={p.y}
                     r={hoveredPoint === idx ? 4.5 : 2.5}
-                    fill={hoveredPoint === idx ? '#c084fc' : '#8b5cf6'}
+                    fill={hoveredPoint === idx ? '#3abeff' : '#6d5dff'}
                     stroke="#ffffff"
                     strokeWidth={hoveredPoint === idx ? 1.5 : 1}
                     className="cursor-pointer transition-all"
@@ -237,7 +251,7 @@ export default function TelemetryDashboard() {
             {/* Custom SVG Tooltip inside SVG parent container */}
             {hoveredPoint !== null && points[hoveredPoint] && (
               <div 
-                className="absolute z-10 bg-cyber-gray-dark border border-primary-purple text-slate-200 px-2 py-1.5 rounded font-cyber-mono text-[8px] flex flex-col gap-0.5 shadow-lg shadow-black/50 pointer-events-none"
+                className="absolute z-10 bg-cyber-gray-dark border border-royal-blue text-slate-200 px-2 py-1.5 rounded font-cyber-mono text-[8px] flex flex-col gap-0.5 shadow-lg shadow-black/50 pointer-events-none"
                 style={{
                   left: `${(points[hoveredPoint].x / chartWidth) * 100}%`,
                   top: `${(points[hoveredPoint].y / chartHeight) * 90}%`,
@@ -253,12 +267,17 @@ export default function TelemetryDashboard() {
         </div>
 
         {/* Bar Chart: Avg Nodes Explored */}
-        <div className="md:col-span-5 glass-card p-4 flex flex-col gap-3 h-[250px]">
+        <div className="md:col-span-5 control-module p-4 flex flex-col gap-3 h-[250px] relative overflow-hidden">
+          <div className="hud-bracket-tl" />
+          <div className="hud-bracket-tr" />
+          <div className="hud-bracket-bl" />
+          <div className="hud-bracket-br" />
+
           <div className="flex justify-between items-center border-b border-cyber-gray-light pb-2 select-none">
             <span className="font-cyber-header text-[10px] text-slate-300 font-bold uppercase tracking-wider">
               ALGORITHM COMPASS SCALING
             </span>
-            <span className="font-cyber-mono text-[9px] text-accent-violet">
+            <span className="font-cyber-mono text-[9px] text-deep-violet font-bold">
               AVERAGE NODES EXPANDED
             </span>
           </div>
@@ -270,8 +289,8 @@ export default function TelemetryDashboard() {
               <svg viewBox="0 0 320 150" className="w-full h-full block overflow-visible">
                 <defs>
                   <linearGradient id="bar-grad" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stopColor="#c084fc" />
-                    <stop offset="100%" stopColor="#8b5cf6" />
+                    <stop offset="0%" stopColor="#3abeff" />
+                    <stop offset="100%" stopColor="#6d5dff" />
                   </linearGradient>
                 </defs>
 
@@ -303,7 +322,7 @@ export default function TelemetryDashboard() {
                           y={y}
                           width={barWidth}
                           height={barHeight}
-                          rx="4"
+                          rx="2"
                           fill="url(#bar-grad)"
                           className="hover:opacity-85 hover:shadow-lg transition-all"
                         />
@@ -342,7 +361,12 @@ export default function TelemetryDashboard() {
       </div>
 
       {/* Filterable Table */}
-      <div className="glass-card p-4 flex flex-col gap-4 shadow-xl select-none w-full">
+      <div className="control-module p-4 flex flex-col gap-4 shadow-xl select-none w-full relative overflow-hidden">
+        <div className="hud-bracket-tl" />
+        <div className="hud-bracket-tr" />
+        <div className="hud-bracket-bl" />
+        <div className="hud-bracket-br" />
+
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center border-b border-cyber-gray-light pb-3 gap-3">
           <span className="font-cyber-header text-xs font-bold text-slate-200 tracking-wider">
             RAW TELEMETRY SOLVE LOGS
@@ -356,7 +380,7 @@ export default function TelemetryDashboard() {
               placeholder="SEARCH BY CORES / STATUS..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="w-full pl-8 pr-3 py-1 bg-cyber-black/70 border border-cyber-gray-light text-[10px] font-cyber-mono rounded text-slate-300 focus:outline-none focus:border-primary-purple placeholder:text-slate-600 transition-colors"
+              className="w-full pl-8 pr-3 py-1 bg-cyber-black/70 border border-cyber-gray-light text-[10px] font-cyber-mono rounded text-slate-300 focus:outline-none focus:border-electric-cyan placeholder:text-slate-600 transition-colors"
             />
           </div>
         </div>
@@ -365,7 +389,7 @@ export default function TelemetryDashboard() {
         <div className="w-full overflow-x-auto">
           <table className="w-full text-left font-cyber-mono text-[10px]">
             <thead>
-              <tr className="border-b border-cyber-gray-light/50 text-slate-500 uppercase tracking-widest text-[8px] font-cyber-header">
+              <tr className="border-b border-royal-blue/20 text-slate-500 uppercase tracking-widest text-[8px] font-cyber-header">
                 <th className="py-2.5 px-3">RUN INDEX</th>
                 <th className="py-2.5 px-3">TIMESTAMP</th>
                 <th className="py-2.5 px-3">ALGORITHM CORE</th>
@@ -381,7 +405,7 @@ export default function TelemetryDashboard() {
                 return (
                   <tr 
                     key={log.id || idx} 
-                    className="border-b border-cyber-gray-light/30 hover:bg-cyber-gray-dark/40 transition-colors"
+                    className="border-b border-cyber-gray-light/30 hover:bg-royal-blue/5 transition-colors"
                   >
                     <td className="py-2.5 px-3 font-bold text-slate-400">
                       #{String(log.id).padStart(4, '0')}
@@ -395,8 +419,8 @@ export default function TelemetryDashboard() {
                     <td className="py-2.5 px-3">
                       <span className={`px-2 py-0.5 rounded text-[8px] font-bold ${
                         isSuccess
-                          ? 'bg-emerald-500/10 border border-emerald-500/25 text-emerald-400'
-                          : 'bg-rose-500/10 border border-rose-500/25 text-rose-400'
+                          ? 'bg-success/10 border border-success/25 text-success'
+                          : 'bg-critical/10 border border-critical/25 text-critical'
                       }`}>
                         {isSuccess ? 'LOCKED' : 'FAILED'}
                       </span>
@@ -409,10 +433,10 @@ export default function TelemetryDashboard() {
                     </td>
                     <td className="py-2.5 px-3 text-right">
                       <div className="flex items-center justify-end gap-2">
-                        <span className="font-bold text-primary-purple">{log.efficiencyScore}%</span>
-                        <div className="w-12 h-1 bg-cyber-black rounded-full overflow-hidden border border-cyber-gray-light/40">
+                        <span className="font-bold text-royal-blue">{log.efficiencyScore}%</span>
+                        <div className="w-12 h-1 bg-cyber-black rounded-sm overflow-hidden border border-royal-blue/20">
                           <div 
-                            className="h-full bg-gradient-to-r from-primary-purple to-accent-violet"
+                            className="h-full bg-gradient-to-r from-royal-blue to-electric-cyan"
                             style={{ width: `${log.efficiencyScore}%` }}
                           />
                         </div>

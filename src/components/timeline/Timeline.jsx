@@ -69,13 +69,13 @@ export default function Timeline({
   const getTickDetails = (type) => {
     switch (type) {
       case E.NODE_EXPANDED:
-        return { color: 'bg-primary-purple/80', show: true };
+        return { color: 'bg-royal-blue', show: true };
       case E.BACKTRACK:
-        return { color: 'bg-rose-500', show: true };
+        return { color: 'bg-critical', show: true };
       case E.PATH_TRACED:
-        return { color: 'bg-emerald-400', show: true };
+        return { color: 'bg-electric-cyan', show: true };
       case E.ALGORITHM_COMPLETE:
-        return { color: 'bg-white shadow-[0_0_4px_#fff]', show: true };
+        return { color: 'bg-white', show: true };
       default:
         return { color: '', show: false };
     }
@@ -85,32 +85,38 @@ export default function Timeline({
   const description = currentEvent?.explanation || 'Simulation standby. Click Play or drag the playhead.';
 
   return (
-    <div className="glass-card p-4 flex flex-col gap-3 shadow-xl w-full select-none relative overflow-hidden">
-      <div className="flex justify-between items-center text-[10px] font-cyber-header text-slate-400">
+    <div className="control-module p-4 flex flex-col gap-3 w-full select-none relative">
+      {/* HUD Corner Brackets */}
+      <div className="hud-bracket-tl" />
+      <div className="hud-bracket-tr" />
+      <div className="hud-bracket-bl" />
+      <div className="hud-bracket-br" />
+
+      <div className="flex justify-between items-center text-[9px] font-cyber-header text-slate-500">
         <span>TIMELINE TELEMETRY SCRUBBER</span>
-        <span className="font-cyber-mono text-primary-purple font-bold">
+        <span className="font-cyber-mono text-electric-cyan font-bold">
           {totalSteps > 0 ? `${Math.round(percentage)}%` : '0%'}
         </span>
       </div>
 
       {/* Progress Track Bar */}
       <div className="relative py-2 cursor-pointer" onMouseDown={handleMouseDown}>
-        {/* Track Track */}
+        {/* Track */}
         <div
           ref={trackRef}
-          className="h-1.5 w-full bg-cyber-black border border-cyber-gray-light rounded-full relative overflow-visible"
+          className="h-1.5 w-full bg-cyber-black border border-cyber-gray-light rounded-sm relative overflow-visible"
         >
           {/* Filled track progress */}
           <div
-            className="h-full bg-gradient-to-r from-primary-purple to-secondary-purple rounded-full"
+            className="h-full bg-royal-blue rounded-sm"
             style={{ width: `${percentage}%` }}
           />
 
-          {/* Draggable Playhead handle */}
+          {/* Playhead handle */}
           {totalSteps > 0 && (
             <div
-              className={`absolute top-1/2 -translate-y-1/2 w-3.5 h-3.5 rounded-full bg-cyber-black border-2 border-primary-purple shadow-[0_0_8px_rgba(139,92,246,0.4)] -ml-1.5 transition-shadow ${
-                isScrubbing ? 'shadow-[0_0_12px_rgba(139,92,246,0.7)] border-white' : ''
+              className={`absolute top-1/2 -translate-y-1/2 w-3 h-3 rounded bg-white border border-royal-blue -ml-1.5 transition-transform ${
+                isScrubbing ? 'scale-110 border-electric-cyan' : ''
               }`}
               style={{ left: `${percentage}%` }}
             />
@@ -134,9 +140,9 @@ export default function Timeline({
       </div>
 
       {/* Current Step Explanation Panel */}
-      <div className="bg-cyber-black border border-cyber-gray-light/40 p-2.5 rounded min-h-12 flex items-center shadow-inner">
+      <div className="bg-cyber-black border border-cyber-gray-light/35 p-2.5 rounded flex items-center">
         <p className="font-cyber-mono text-xs text-slate-400 leading-relaxed">
-          <span className="text-primary-purple font-bold tracking-wider mr-2">
+          <span className="text-electric-cyan font-bold tracking-widest mr-2.5">
             [SYS_LOG]
           </span>
           {description}

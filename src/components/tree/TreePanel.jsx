@@ -115,50 +115,50 @@ export default function TreePanel({
     const state = cellStates.get(nodeId) || CellState.UNVISITED;
 
     let fill = 'rgba(22, 26, 35, 0.4)';
-    let stroke = 'rgba(79, 124, 255, 0.25)';
+    let stroke = 'rgba(109, 93, 255, 0.25)';
     let glow = 'rgba(0, 0, 0, 0)';
     let isCurrent = false;
     let status = 'operational'; // 'operational' (cyan/blue), 'active' (cyan), 'warning' (orange), 'critical' (red)
 
     switch (state) {
       case CellState.START:
-        fill = 'rgba(56, 189, 248, 0.15)';
-        stroke = '#38bdf8';
-        glow = 'rgba(56, 189, 248, 0.4)';
+        fill = 'rgba(58, 190, 255, 0.15)';
+        stroke = '#3abeff';
+        glow = 'rgba(58, 190, 255, 0.4)';
         status = 'active';
         break;
       case CellState.GOAL:
-        fill = 'rgba(79, 124, 255, 0.15)';
-        stroke = '#4f7cff';
-        glow = 'rgba(79, 124, 255, 0.4)';
+        fill = 'rgba(109, 93, 255, 0.15)';
+        stroke = '#6d5dff';
+        glow = 'rgba(109, 93, 255, 0.4)';
         status = 'active';
         break;
       case CellState.CURRENT:
-        fill = 'rgba(56, 189, 248, 0.15)';
-        stroke = '#38bdf8';
-        glow = 'rgba(56, 189, 248, 0.8)';
+        fill = 'rgba(58, 190, 255, 0.15)';
+        stroke = '#3abeff';
+        glow = 'rgba(58, 190, 255, 0.8)';
         isCurrent = true;
         status = 'active';
         break;
       case CellState.FINAL_PATH:
-        fill = 'rgba(56, 189, 248, 0.8)';
+        fill = 'rgba(58, 190, 255, 0.8)';
         stroke = '#ffffff';
-        glow = 'rgba(56, 189, 248, 0.6)';
+        glow = 'rgba(58, 190, 255, 0.6)';
         status = 'active';
         break;
       case CellState.DISCOVERED:
-        fill = 'rgba(79, 124, 255, 0.12)';
-        stroke = 'rgba(79, 124, 255, 0.45)';
+        fill = 'rgba(109, 93, 255, 0.12)';
+        stroke = 'rgba(109, 93, 255, 0.45)';
         status = 'operational';
         break;
       case CellState.IN_FRONTIER:
-        fill = 'rgba(56, 189, 248, 0.1)';
-        stroke = 'rgba(56, 189, 248, 0.5)';
+        fill = 'rgba(58, 190, 255, 0.1)';
+        stroke = 'rgba(58, 190, 255, 0.5)';
         status = 'active';
         break;
       case CellState.EXPANDED:
-        fill = 'rgba(79, 124, 255, 0.05)';
-        stroke = 'rgba(79, 124, 255, 0.2)';
+        fill = 'rgba(109, 93, 255, 0.05)';
+        stroke = 'rgba(109, 93, 255, 0.2)';
         status = 'operational';
         break;
       case CellState.BACKTRACKED:
@@ -177,9 +177,9 @@ export default function TreePanel({
     const targetState = cellStates.get(targetId);
     
     if (targetState === CellState.FINAL_PATH) {
-      return { stroke: '#38bdf8', width: 2.2, glow: 'rgba(56, 189, 248, 0.5)' };
+      return { stroke: '#3abeff', width: 2.2, glow: 'rgba(58, 190, 255, 0.5)' };
     }
-    return { stroke: 'rgba(79, 124, 255, 0.15)', width: 1, glow: 'none' };
+    return { stroke: 'rgba(109, 93, 255, 0.15)', width: 1, glow: 'none' };
   };
 
   if (nodes.length === 0) {

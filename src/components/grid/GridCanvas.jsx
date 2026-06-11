@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, useCallback, useMemo } from 'react';
+import { useEffect, useRef, useState, useCallback } from 'react';
 import { CameraController } from './CameraController.js';
 import { CellState, CellType } from '../../engine/eventTypes.js';
 
@@ -26,10 +26,7 @@ export default function GridCanvas({
   const [isDrawing, setIsDrawing] = useState(false);
   const [currentZoom, setCurrentZoom] = useState(1);
 
-  // Keep a ref of mouse positions for hit testing
-  const mouseRef = useRef({ x: 0, y: 0 });
-
-  // Grid dimensions in world coordinates
+  // Grid dimensions
   const rows = grid.length;
   const cols = grid[0]?.length || 0;
   const worldWidth = cols * CELL_SIZE;
@@ -41,13 +38,11 @@ export default function GridCanvas({
       cameraRef.current = new CameraController(canvasFgRef.current);
       handleResize();
     }
-    
-    // Add window resize listener
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
-  // Set canvas size and fit to screen on mount or dimension change
+  // Set canvas size and fit to screen
   const handleResize = useCallback(() => {
     const container = containerRef.current;
     const canvasBg = canvasBgRef.current;
@@ -57,10 +52,9 @@ export default function GridCanvas({
     if (!container || !canvasBg || !canvasFg || !camera) return;
 
     const width = container.clientWidth;
-    const height = container.clientHeight || 500;
+    const height = container.clientHeight || 450;
     const dpr = window.devicePixelRatio || 1;
 
-    // Set canvas sizes for HDPI
     canvasBg.width = width * dpr;
     canvasBg.height = height * dpr;
     canvasBg.style.width = `${width}px`;
@@ -71,7 +65,6 @@ export default function GridCanvas({
     canvasFg.style.width = `${width}px`;
     canvasFg.style.height = `${height}px`;
 
-    // Initialize/Reset camera fits
     camera.fitToScreen(worldWidth, worldHeight, width, height);
     setCurrentZoom(camera.zoom);
     drawAll();
@@ -83,12 +76,7 @@ export default function GridCanvas({
     drawForeground();
   }, [grid, snapshot, startNode, goalNode, hoveredCell]);
 
-  // Redraw when grid/nodes change
-  useEffect(() => {
-    drawAll();
-  }, [grid, startNode, goalNode, drawAll]);
-
-  // Redraw both background and foreground when grid, start/goal endpoints, or snapshot changes
+  // Redraw both layers when grid, nodes, or simulation state changes
   useEffect(() => {
     drawAll();
   }, [grid, startNode, goalNode, snapshot, drawAll]);
@@ -98,7 +86,7 @@ export default function GridCanvas({
     drawForeground();
   }, [hoveredCell]);
 
-  // Background rendering: Static grid lines + Obstacles + Terrain Weights + Explored Nodes
+  // Layer 1 (Base), Layer 2 (Structural Framework), Layer 3 (Panels & Mesh)
   function drawBackground() {
     const canvas = canvasBgRef.current;
     const camera = cameraRef.current;
@@ -113,26 +101,86 @@ export default function GridCanvas({
     ctx.scale(dpr, dpr);
     camera.applyTransform(ctx);
 
-    // 1. Draw subtle background mesh
-    ctx.fillStyle = '#050507';
+    // LAYER 1: Deep Space Background
+    ctx.fillStyle = '#03040A';
     ctx.fillRect(0, 0, worldWidth, worldHeight);
 
-    // 2. Draw grid lines
-    ctx.strokeStyle = 'rgba(255, 255, 255, 0.03)';
+    // Layer 1 overlay: Soft volumetric radial lighting illusion (center-weighted)
+    const centerGrad = ctx.createRadialGradient(
+      worldWidth / 2, worldHeight / 2, 0,
+      worldWidth / 2, worldHeight / 2, Math.max(worldWidth, worldHeight) * 0.55
+    );
+    centerGrad.addColorStop(0, 'rgba(109, 93, 255, 0.03)');
+    centerGrad.addColorStop(1, 'rgba(3, 4, 10, 0)');
+    ctx.fillStyle = centerGrad;
+    ctx.fillRect(0, 0, worldWidth, worldHeight);
+
+    // LAYER 2: Structural Framework (Axes Calibration Ticks & Grid Borders)
+    ctx.strokeStyle = 'rgba(109, 93, 255, 0.12)';
+    ctx.lineWidth = 0.5;
+    ctx.strokeRect(0, 0, worldWidth, worldHeight);
+
+    // Column lettering tick marks along top/bottom
+    ctx.fillStyle = 'rgba(109, 93, 255, 0.3)';
+    ctx.font = '7px "JetBrains Mono"';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    
+    for (let c = 0; c < cols; c += 5) {
+      const cx = c * CELL_SIZE + CELL_SIZE / 2;
+      ctx.fillText(`C${String(c).padStart(2, '0')}`, cx, -6);
+      ctx.fillText(`C${String(c).padStart(2, '0')}`, cx, worldHeight + 6);
+    }
+
+    // Row numbering tick marks along left/right
+    ctx.textAlign = 'right';
+    for (let r = 0; r < rows; r += 5) {
+      const ry = r * CELL_SIZE + CELL_SIZE / 2;
+      ctx.fillText(`R${String(r).padStart(2, '0')}`, -6, ry);
+      ctx.textAlign = 'left';
+      ctx.fillText(`R${String(r).padStart(2, '0')}`, worldWidth + 6, ry);
+      ctx.textAlign = 'right';
+    }
+
+    // LAYER 3: Concentric Orbital Radar Sweeps
+    ctx.strokeStyle = 'rgba(109, 93, 255, 0.04)';
+    ctx.lineWidth = 0.75;
+    ctx.beginPath();
+    ctx.arc(worldWidth / 2, worldHeight / 2, Math.min(worldWidth, worldHeight) * 0.18, 0, Math.PI * 2);
+    ctx.arc(worldWidth / 2, worldHeight / 2, Math.min(worldWidth, worldHeight) * 0.38, 0, Math.PI * 2);
+    ctx.arc(worldWidth / 2, worldHeight / 2, Math.min(worldWidth, worldHeight) * 0.58, 0, Math.PI * 2);
+    ctx.stroke();
+
+    // Bounding target brackets inside grid corners
+    const bkSize = 10;
+    ctx.strokeStyle = 'rgba(58, 190, 255, 0.4)';
     ctx.lineWidth = 1;
     ctx.beginPath();
-    
-    for (let r = 0; r <= rows; r++) {
+    // Top-left
+    ctx.moveTo(0, bkSize); ctx.lineTo(0, 0); ctx.lineTo(bkSize, 0);
+    // Top-right
+    ctx.moveTo(worldWidth - bkSize, 0); ctx.lineTo(worldWidth, 0); ctx.lineTo(worldWidth, bkSize);
+    // Bottom-left
+    ctx.moveTo(0, worldHeight - bkSize); ctx.lineTo(0, worldHeight); ctx.lineTo(bkSize, worldHeight);
+    // Bottom-right
+    ctx.moveTo(worldWidth - bkSize, worldHeight); ctx.lineTo(worldWidth, worldHeight); ctx.lineTo(worldWidth, worldHeight - bkSize);
+    ctx.stroke();
+
+    // Subtle Grid mesh lines
+    ctx.strokeStyle = 'rgba(109, 93, 255, 0.03)';
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    for (let r = 1; r < rows; r++) {
       ctx.moveTo(0, r * CELL_SIZE);
       ctx.lineTo(worldWidth, r * CELL_SIZE);
     }
-    for (let c = 0; c <= cols; c++) {
+    for (let c = 1; c < cols; c++) {
       ctx.moveTo(c * CELL_SIZE, 0);
       ctx.lineTo(c * CELL_SIZE, worldHeight);
     }
     ctx.stroke();
 
-    // 3. Draw static terrain elements (obstacles/weights)
+    // Static terrain elements (Obstacles/Weights)
     for (let r = 0; r < rows; r++) {
       for (let c = 0; c < cols; c++) {
         const cell = grid[r][c];
@@ -140,43 +188,31 @@ export default function GridCanvas({
         const y = r * CELL_SIZE;
 
         if (cell.type === CellType.OBSTACLE) {
-          // Obstacle (craters/asteroids) — red warning hatched
-          ctx.fillStyle = 'rgba(255, 51, 51, 0.15)';
+          // Obstacle (Debris) - physical metal hatches
+          ctx.fillStyle = 'rgba(107, 114, 128, 0.12)';
           ctx.fillRect(x + 1, y + 1, CELL_SIZE - 2, CELL_SIZE - 2);
-          ctx.strokeStyle = '#ff3333';
-          ctx.lineWidth = 1.5;
+          ctx.strokeStyle = '#6b7280';
+          ctx.lineWidth = 1;
           ctx.strokeRect(x + 1, y + 1, CELL_SIZE - 2, CELL_SIZE - 2);
 
-          // Hatching lines
-          ctx.strokeStyle = 'rgba(255, 51, 51, 0.4)';
-          ctx.lineWidth = 1;
+          // Diagonal structural hatch lines
+          ctx.strokeStyle = 'rgba(107, 114, 128, 0.25)';
           ctx.beginPath();
           ctx.moveTo(x + 4, y + 24); ctx.lineTo(x + 24, y + 4);
-          ctx.moveTo(x + 4, y + 14); ctx.lineTo(x + 14, y + 4);
-          ctx.moveTo(x + 14, y + 24); ctx.lineTo(x + 24, y + 14);
           ctx.stroke();
         } else if (cell.type === CellType.WEIGHTED || cell.type === CellType.HEAVY) {
-          // Weighted terrain (dunes/nebula) — amber stripes
+          // Nebula/Gravity - Energy-tinted panels
           const isHeavy = cell.type === CellType.HEAVY;
-          ctx.fillStyle = isHeavy ? 'rgba(157, 78, 221, 0.12)' : 'rgba(255, 170, 0, 0.12)';
+          ctx.fillStyle = isHeavy ? 'rgba(142, 132, 255, 0.08)' : 'rgba(109, 93, 255, 0.08)';
           ctx.fillRect(x + 1, y + 1, CELL_SIZE - 2, CELL_SIZE - 2);
-          ctx.strokeStyle = isHeavy ? '#9d4edd' : '#ffaa00';
-          ctx.lineWidth = 1.2;
-          ctx.strokeRect(x + 1, y + 1, CELL_SIZE - 2, CELL_SIZE - 2);
-
-          // Stripes
-          ctx.strokeStyle = isHeavy ? 'rgba(157, 78, 221, 0.35)' : 'rgba(255, 170, 0, 0.35)';
+          ctx.strokeStyle = isHeavy ? 'rgba(142, 132, 255, 0.3)' : 'rgba(109, 93, 255, 0.3)';
           ctx.lineWidth = 1;
-          ctx.beginPath();
-          ctx.moveTo(x + 2, y + 2); ctx.lineTo(x + 26, y + 26);
-          ctx.moveTo(x + 2, y + 12); ctx.lineTo(x + 16, y + 26);
-          ctx.moveTo(x + 12, y + 2); ctx.lineTo(x + 26, y + 16);
-          ctx.stroke();
+          ctx.strokeRect(x + 1, y + 1, CELL_SIZE - 2, CELL_SIZE - 2);
         }
       }
     }
 
-    // 4. Draw static cell states (Discovered, Expanded, Backtracked, Path)
+    // Static cell states (Explored path nodes)
     const cellStates = snapshot?.cellStates || new Map();
     ctx.lineWidth = 1;
     ctx.shadowBlur = 0;
@@ -184,7 +220,7 @@ export default function GridCanvas({
     for (const [key, state] of cellStates.entries()) {
       if (state === CellState.START || state === CellState.GOAL || state === CellState.CURRENT || state === CellState.IN_FRONTIER) continue;
 
-      // Fast non-allocating parsing of coordinates
+      // Fast non-allocating parser
       const commaIdx = key.indexOf(',');
       const r = +key.substring(0, commaIdx);
       const c = +key.substring(commaIdx + 1);
@@ -192,37 +228,34 @@ export default function GridCanvas({
       const y = r * CELL_SIZE;
 
       if (state === CellState.DISCOVERED) {
-        ctx.fillStyle = 'rgba(79, 124, 255, 0.08)';
-        ctx.strokeStyle = 'rgba(79, 124, 255, 0.2)';
+        ctx.fillStyle = 'rgba(109, 93, 255, 0.06)';
+        ctx.strokeStyle = 'rgba(109, 93, 255, 0.16)';
         ctx.fillRect(x + 2, y + 2, CELL_SIZE - 4, CELL_SIZE - 4);
         ctx.strokeRect(x + 2, y + 2, CELL_SIZE - 4, CELL_SIZE - 4);
       } else if (state === CellState.EXPANDED) {
-        ctx.fillStyle = 'rgba(79, 124, 255, 0.05)';
-        ctx.strokeStyle = 'rgba(79, 124, 255, 0.12)';
+        ctx.fillStyle = 'rgba(109, 93, 255, 0.03)';
+        ctx.strokeStyle = 'rgba(109, 93, 255, 0.08)';
         ctx.fillRect(x + 2, y + 2, CELL_SIZE - 4, CELL_SIZE - 4);
         ctx.strokeRect(x + 2, y + 2, CELL_SIZE - 4, CELL_SIZE - 4);
       } else if (state === CellState.BACKTRACKED) {
-        ctx.fillStyle = 'rgba(255, 93, 115, 0.1)';
-        ctx.strokeStyle = 'rgba(255, 93, 115, 0.25)';
+        ctx.fillStyle = 'rgba(255, 93, 115, 0.06)';
+        ctx.strokeStyle = 'rgba(255, 93, 115, 0.15)';
         ctx.fillRect(x + 2, y + 2, CELL_SIZE - 4, CELL_SIZE - 4);
         ctx.strokeRect(x + 2, y + 2, CELL_SIZE - 4, CELL_SIZE - 4);
       } else if (state === CellState.FINAL_PATH) {
-        ctx.save();
-        ctx.fillStyle = 'rgba(56, 189, 248, 0.85)';
+        // High visibility trace paths
+        ctx.fillStyle = 'rgba(58, 190, 255, 0.75)';
         ctx.strokeStyle = '#ffffff';
-        ctx.lineWidth = 1.5;
-        ctx.shadowColor = '#38bdf8';
-        ctx.shadowBlur = 8;
+        ctx.lineWidth = 1;
         ctx.fillRect(x + 2, y + 2, CELL_SIZE - 4, CELL_SIZE - 4);
         ctx.strokeRect(x + 2, y + 2, CELL_SIZE - 4, CELL_SIZE - 4);
-        ctx.restore();
       }
     }
 
     ctx.restore();
-  };
+  }
 
-  // Foreground rendering: Dynamic states + Start/Goal + Hover indicator + Pulsing glows
+  // LAYER 4: Interactive Controls, LAYER 5: Active Data
   function drawForeground() {
     const canvas = canvasFgRef.current;
     const camera = cameraRef.current;
@@ -238,16 +271,14 @@ export default function GridCanvas({
     camera.applyTransform(ctx);
 
     const cellStates = snapshot?.cellStates || new Map();
-    const pulseScale = 1 + 0.06 * Math.sin(Date.now() / 150); // Pulsing factor for animations
 
-    // 1. Draw dynamic exploration cells (Frontier, Current Node)
+    // 1. Draw dynamic wavefront cells (Frontier, Current)
     ctx.lineWidth = 1;
     ctx.shadowBlur = 0;
     
     for (const [key, state] of cellStates.entries()) {
       if (state !== CellState.IN_FRONTIER && state !== CellState.CURRENT) continue;
 
-      // Fast non-allocating parsing of coordinates
       const commaIdx = key.indexOf(',');
       const r = +key.substring(0, commaIdx);
       const c = +key.substring(commaIdx + 1);
@@ -255,84 +286,62 @@ export default function GridCanvas({
       const y = r * CELL_SIZE;
 
       if (state === CellState.IN_FRONTIER) {
-        // Frontier nodes have a breathing border glow
-        ctx.fillStyle = 'rgba(56, 189, 248, 0.22)';
-        ctx.strokeStyle = `rgba(56, 189, 248, ${0.45 + 0.15 * Math.sin(Date.now() / 120)})`;
-        ctx.lineWidth = 1.5;
+        // Active data frontier
+        ctx.fillStyle = 'rgba(58, 190, 255, 0.18)';
+        ctx.strokeStyle = 'rgba(58, 190, 255, 0.4)';
         ctx.fillRect(x + 2, y + 2, CELL_SIZE - 4, CELL_SIZE - 4);
         ctx.strokeRect(x + 2, y + 2, CELL_SIZE - 4, CELL_SIZE - 4);
       } else if (state === CellState.CURRENT) {
-        ctx.save();
-        // Pulsing scale factor for current node
-        ctx.fillStyle = '#38bdf8';
+        // Core resolving cursor (no shadow, crisp highlight)
+        ctx.fillStyle = '#3abeff';
         ctx.strokeStyle = '#ffffff';
-        ctx.lineWidth = 2;
-        ctx.shadowColor = '#38bdf8';
-        ctx.shadowBlur = 10;
-        
-        ctx.translate(x + CELL_SIZE / 2, y + CELL_SIZE / 2);
-        ctx.scale(pulseScale, pulseScale);
-        ctx.fillRect(-CELL_SIZE / 2 + 3, -CELL_SIZE / 2 + 3, CELL_SIZE - 6, CELL_SIZE - 6);
-        ctx.strokeRect(-CELL_SIZE / 2 + 3, -CELL_SIZE / 2 + 3, CELL_SIZE - 6, CELL_SIZE - 6);
-        ctx.restore();
+        ctx.lineWidth = 1.5;
+        ctx.fillRect(x + 2, y + 2, CELL_SIZE - 4, CELL_SIZE - 4);
+        ctx.strokeRect(x + 2, y + 2, CELL_SIZE - 4, CELL_SIZE - 4);
       }
     }
 
-    // 2. Draw Start (Transmitter) & Goal (Satellite)
+    // 2. Draw TX start & RX goal endpoints
     const drawEndpoint = (node, isStart) => {
       const x = node.col * CELL_SIZE;
       const y = node.row * CELL_SIZE;
-      const glowColor = isStart ? '#38bdf8' : '#4f7cff';
+      const ringColor = isStart ? '#3abeff' : '#6d5dff';
       
       ctx.save();
       ctx.translate(x + CELL_SIZE / 2, y + CELL_SIZE / 2);
-      ctx.scale(pulseScale, pulseScale);
 
-      // Glow backing
-      ctx.shadowColor = glowColor;
-      ctx.shadowBlur = 10;
-      ctx.strokeStyle = glowColor;
-      ctx.lineWidth = 1.5;
+      ctx.strokeStyle = ringColor;
+      ctx.lineWidth = 1.2;
 
-      // 1. Draw outer circle
+      // Outer target sweep ring
       ctx.beginPath();
-      ctx.arc(0, 0, CELL_SIZE / 2 - 3, 0, Math.PI * 2);
+      ctx.arc(0, 0, CELL_SIZE / 2 - 4, 0, Math.PI * 2);
       ctx.stroke();
 
-      // 2. Draw crosshairs
+      // Tactical crosshairs
       ctx.beginPath();
-      ctx.moveTo(-CELL_SIZE / 2 + 1, 0);
-      ctx.lineTo(-3, 0);
-      ctx.moveTo(3, 0);
-      ctx.lineTo(CELL_SIZE / 2 - 1, 0);
-      ctx.moveTo(0, -CELL_SIZE / 2 + 1);
-      ctx.lineTo(0, -3);
-      ctx.moveTo(0, 3);
-      ctx.lineTo(0, CELL_SIZE / 2 - 1);
+      ctx.moveTo(-CELL_SIZE / 2 + 2, 0); ctx.lineTo(-4, 0);
+      ctx.moveTo(4, 0); ctx.lineTo(CELL_SIZE / 2 - 2, 0);
+      ctx.moveTo(0, -CELL_SIZE / 2 + 2); ctx.lineTo(0, -4);
+      ctx.moveTo(0, 4); ctx.lineTo(0, CELL_SIZE / 2 - 2);
       ctx.stroke();
 
-      // 3. Draw inner details
+      // Inner delta indicator
+      ctx.beginPath();
       if (isStart) {
-        ctx.beginPath();
-        ctx.arc(0, 0, 4, 0, Math.PI * 2);
+        ctx.arc(0, 0, 3.5, 0, Math.PI * 2);
         ctx.fillStyle = '#ffffff';
         ctx.fill();
-        ctx.stroke();
       } else {
-        ctx.beginPath();
-        ctx.moveTo(0, -4);
-        ctx.lineTo(4, 0);
-        ctx.lineTo(0, 4);
-        ctx.lineTo(-4, 0);
+        ctx.moveTo(0, -3.5); ctx.lineTo(3.5, 0); ctx.lineTo(0, 3.5); ctx.lineTo(-3.5, 0);
         ctx.closePath();
         ctx.fillStyle = '#ffffff';
         ctx.fill();
-        ctx.stroke();
       }
+      ctx.stroke();
 
-      // 4. Draw labels (TX / RX)
-      ctx.shadowBlur = 0;
-      ctx.font = 'bold 7px "JetBrains Mono"';
+      // Telemetry tags
+      ctx.font = 'bold 6px "JetBrains Mono"';
       ctx.fillStyle = '#ffffff';
       ctx.textAlign = 'center';
       ctx.textBaseline = 'middle';
@@ -344,32 +353,27 @@ export default function GridCanvas({
     if (startNode) drawEndpoint(startNode, true);
     if (goalNode) drawEndpoint(goalNode, false);
 
-    // 3. Draw Hover Cell Highlight
+    // LAYER 4: Interactive Brush Controls (Hover Cursor)
     if (hoveredCell && isInteractive && !isPanning) {
       const hx = hoveredCell.col * CELL_SIZE;
       const hy = hoveredCell.row * CELL_SIZE;
-      ctx.strokeStyle = '#38bdf8';
-      ctx.lineWidth = 1.5;
-      ctx.shadowColor = '#38bdf8';
-      ctx.shadowBlur = 6;
+      ctx.strokeStyle = '#3abeff';
+      ctx.lineWidth = 1;
       ctx.strokeRect(hx + 1, hy + 1, CELL_SIZE - 2, CELL_SIZE - 2);
+
+      // Fine coordinate crosshairs sweeps outside grid bounding box
+      ctx.strokeStyle = 'rgba(58, 190, 255, 0.1)';
+      ctx.lineWidth = 0.5;
+      ctx.beginPath();
+      ctx.moveTo(hx + CELL_SIZE / 2, 0); ctx.lineTo(hx + CELL_SIZE / 2, worldHeight);
+      ctx.moveTo(0, hy + CELL_SIZE / 2); ctx.lineTo(worldWidth, hy + CELL_SIZE / 2);
+      ctx.stroke();
     }
 
     ctx.restore();
-  };
+  }
 
-  // Continuous animation loop for glowing nodes
-  useEffect(() => {
-    let animId;
-    const animate = () => {
-      drawForeground();
-      animId = requestAnimationFrame(animate);
-    };
-    animId = requestAnimationFrame(animate);
-    return () => cancelAnimationFrame(animId);
-  }, [snapshot, hoveredCell]);
-
-  // Coordinate converter helper
+  // Handle Drag/Pan inputs
   const getCellFromEvent = (e) => {
     const camera = cameraRef.current;
     if (!camera) return null;
@@ -384,7 +388,6 @@ export default function GridCanvas({
     const camera = cameraRef.current;
     if (!camera) return;
 
-    // Check if middle click or Space key/Alt key pans
     if (e.button === 1 || e.button === 2 || e.shiftKey) {
       camera.handleMouseDown(e);
       setIsPanning(true);
@@ -396,12 +399,8 @@ export default function GridCanvas({
     const cell = getCellFromEvent(e);
     if (cell && cell.row >= 0 && cell.row < rows && cell.col >= 0 && cell.col < cols) {
       setIsDrawing(true);
-      if (onDragStart) {
-        onDragStart(cell.row, cell.col);
-      }
-      if (onCellClick) {
-        onCellClick(cell.row, cell.col);
-      }
+      if (onDragStart) onDragStart(cell.row, cell.col);
+      if (onCellClick) onCellClick(cell.row, cell.col);
     }
   };
 
@@ -426,7 +425,7 @@ export default function GridCanvas({
     }
   };
 
-  const handleMouseUp = (e) => {
+  const handleMouseUp = () => {
     const camera = cameraRef.current;
     if (!camera) return;
 
@@ -437,58 +436,40 @@ export default function GridCanvas({
     }
 
     setIsDrawing(false);
-    if (onDragEnd) {
-      onDragEnd();
-    }
-  };
-
-  // Prevent context menu to allow panning with right click
-  const handleContextMenu = (e) => {
-    e.preventDefault();
+    if (onDragEnd) onDragEnd();
   };
 
   return (
     <div
       ref={containerRef}
-      className={`w-full h-full relative overflow-hidden rounded bg-cyber-black border border-cyber-gray-light ${
+      className={`w-full h-full relative overflow-hidden bg-cyber-black border border-cyber-gray-light rounded ${
         isPanning ? 'cursor-grabbing' : isInteractive ? 'cursor-crosshair' : 'cursor-default'
       }`}
-      style={{ minHeight: '400px' }}
+      style={{ minHeight: '430px' }}
       onMouseDown={handleMouseDown}
       onMouseMove={handleMouseMove}
       onMouseUp={handleMouseUp}
       onMouseLeave={handleMouseUp}
-      onContextMenu={handleContextMenu}
+      onContextMenu={(e) => e.preventDefault()}
     >
-      {/* HUD corner ornaments */}
-      <div className="hud-corner-tl" />
-      <div className="hud-corner-tr" />
-      <div className="hud-corner-bl" />
-      <div className="hud-corner-br" />
+      {/* Viewport bracket corners */}
+      <div className="hud-bracket-tl" />
+      <div className="hud-bracket-tr" />
+      <div className="hud-bracket-bl" />
+      <div className="hud-bracket-br" />
 
-      {/* GPU-accelerated scanline container and bar */}
-      <div className="scan-bar-container">
-        <div className="scan-bar" />
+      {/* Grid rendering layers */}
+      <canvas ref={canvasBgRef} className="absolute inset-0 pointer-events-none" style={{ zIndex: 1 }} />
+      <canvas ref={canvasFgRef} className="absolute inset-0 block" style={{ zIndex: 2 }} />
+
+      {/* Viewport telemetry footer tags */}
+      <div className="absolute bottom-3 left-3 z-10 font-cyber-mono text-[8px] text-slate-500 bg-cyber-black/90 px-2 py-1 border border-cyber-gray-light rounded select-none pointer-events-none">
+        GRID SECTOR RATIO: {cols}x{rows} | ZOOM LEVEL: {Math.round(currentZoom * 100)}%
       </div>
 
-      <canvas
-        ref={canvasBgRef}
-        className="absolute inset-0 pointer-events-none"
-        style={{ zIndex: 1 }}
-      />
-      <canvas
-        ref={canvasFgRef}
-        className="absolute inset-0 block"
-        style={{ zIndex: 2 }}
-      />
-      {/* UI controls inside scanner viewport */}
-      <div className="absolute bottom-2 left-2 z-10 font-cyber-mono text-[9px] text-slate-500 bg-cyber-black/80 px-2 py-1 border border-cyber-gray-light rounded backdrop-blur select-none pointer-events-none">
-        DRAG (RIGHT-CLICK/SHIFT): PAN | DRAG (LEFT-CLICK): PAINT
-      </div>
-
-      {/* Floating Zoom Controls */}
+      {/* Floating Tactical Zoom controls */}
       <div 
-        className="absolute bottom-2 right-2 z-10 flex items-center gap-1.5 px-2 py-1 select-none shadow-lg shadow-black/40 glass-card"
+        className="absolute bottom-3 right-3 z-10 flex items-center gap-1.5 px-2 py-1 select-none shadow-lg shadow-black/80 bg-cyber-gray-dark border border-cyber-gray-light rounded"
         onMouseDown={(e) => e.stopPropagation()}
         onMouseMove={(e) => e.stopPropagation()}
         onMouseUp={(e) => e.stopPropagation()}
@@ -504,12 +485,11 @@ export default function GridCanvas({
             }
           }}
           disabled={currentZoom <= 0.301}
-          className="w-6 h-6 flex items-center justify-center font-cyber-mono font-bold text-xs rounded border border-cyber-gray-light bg-cyber-gray-dark/50 text-slate-400 hover:text-electric-cyan hover:border-electric-cyan hover:bg-electric-cyan/10 hover:shadow-[0_0_8px_rgba(56,189,248,0.25)] active:scale-95 disabled:opacity-20 disabled:pointer-events-none focus:outline-none focus:ring-1 focus:ring-electric-cyan transition-all cursor-pointer"
-          title="Zoom Out"
+          className="w-5 h-5 flex items-center justify-center font-cyber-mono font-bold text-xs rounded border border-cyber-gray-light bg-cyber-gray-dark/50 text-slate-400 hover:text-electric-cyan hover:border-electric-cyan transition-all cursor-pointer disabled:opacity-20"
         >
           −
         </button>
-        <span className="font-cyber-mono text-[9px] text-slate-400 min-w-[34px] text-center">
+        <span className="font-cyber-mono text-[8px] text-slate-400 min-w-[28px] text-center">
           {Math.round(currentZoom * 100)}%
         </span>
         <button
@@ -522,8 +502,7 @@ export default function GridCanvas({
             }
           }}
           disabled={currentZoom >= 4.99}
-          className="w-6 h-6 flex items-center justify-center font-cyber-mono font-bold text-xs rounded border border-cyber-gray-light bg-cyber-gray-dark/50 text-slate-400 hover:text-electric-cyan hover:border-electric-cyan hover:bg-electric-cyan/10 hover:shadow-[0_0_8px_rgba(56,189,248,0.25)] active:scale-95 disabled:opacity-20 disabled:pointer-events-none focus:outline-none focus:ring-1 focus:ring-electric-cyan transition-all cursor-pointer"
-          title="Zoom In"
+          className="w-5 h-5 flex items-center justify-center font-cyber-mono font-bold text-xs rounded border border-cyber-gray-light bg-cyber-gray-dark/50 text-slate-400 hover:text-electric-cyan hover:border-electric-cyan transition-all cursor-pointer disabled:opacity-20"
         >
           +
         </button>
