@@ -88,12 +88,17 @@ export default function GridCanvas({
     drawAll();
   }, [grid, startNode, goalNode, drawAll]);
 
-  // Redraw foreground specifically when simulation snapshot or hover cell changes
+  // Redraw both background and foreground when grid, start/goal endpoints, or snapshot changes
+  useEffect(() => {
+    drawAll();
+  }, [grid, startNode, goalNode, snapshot, drawAll]);
+
+  // Redraw foreground specifically when hovered cell changes
   useEffect(() => {
     drawForeground();
-  }, [snapshot, hoveredCell, drawForeground]);
+  }, [hoveredCell]);
 
-  // Background rendering: Static grid lines + Obstacles + Terrain Weights
+  // Background rendering: Static grid lines + Obstacles + Terrain Weights + Explored Nodes
   function drawBackground() {
     const canvas = canvasBgRef.current;
     const camera = cameraRef.current;
@@ -171,10 +176,53 @@ export default function GridCanvas({
       }
     }
 
+    // 4. Draw static cell states (Discovered, Expanded, Backtracked, Path)
+    const cellStates = snapshot?.cellStates || new Map();
+    ctx.lineWidth = 1;
+    ctx.shadowBlur = 0;
+    
+    for (const [key, state] of cellStates.entries()) {
+      if (state === CellState.START || state === CellState.GOAL || state === CellState.CURRENT || state === CellState.IN_FRONTIER) continue;
+
+      // Fast non-allocating parsing of coordinates
+      const commaIdx = key.indexOf(',');
+      const r = +key.substring(0, commaIdx);
+      const c = +key.substring(commaIdx + 1);
+      const x = c * CELL_SIZE;
+      const y = r * CELL_SIZE;
+
+      if (state === CellState.DISCOVERED) {
+        ctx.fillStyle = 'rgba(79, 124, 255, 0.08)';
+        ctx.strokeStyle = 'rgba(79, 124, 255, 0.2)';
+        ctx.fillRect(x + 2, y + 2, CELL_SIZE - 4, CELL_SIZE - 4);
+        ctx.strokeRect(x + 2, y + 2, CELL_SIZE - 4, CELL_SIZE - 4);
+      } else if (state === CellState.EXPANDED) {
+        ctx.fillStyle = 'rgba(79, 124, 255, 0.05)';
+        ctx.strokeStyle = 'rgba(79, 124, 255, 0.12)';
+        ctx.fillRect(x + 2, y + 2, CELL_SIZE - 4, CELL_SIZE - 4);
+        ctx.strokeRect(x + 2, y + 2, CELL_SIZE - 4, CELL_SIZE - 4);
+      } else if (state === CellState.BACKTRACKED) {
+        ctx.fillStyle = 'rgba(255, 93, 115, 0.1)';
+        ctx.strokeStyle = 'rgba(255, 93, 115, 0.25)';
+        ctx.fillRect(x + 2, y + 2, CELL_SIZE - 4, CELL_SIZE - 4);
+        ctx.strokeRect(x + 2, y + 2, CELL_SIZE - 4, CELL_SIZE - 4);
+      } else if (state === CellState.FINAL_PATH) {
+        ctx.save();
+        ctx.fillStyle = 'rgba(56, 189, 248, 0.85)';
+        ctx.strokeStyle = '#ffffff';
+        ctx.lineWidth = 1.5;
+        ctx.shadowColor = '#38bdf8';
+        ctx.shadowBlur = 8;
+        ctx.fillRect(x + 2, y + 2, CELL_SIZE - 4, CELL_SIZE - 4);
+        ctx.strokeRect(x + 2, y + 2, CELL_SIZE - 4, CELL_SIZE - 4);
+        ctx.restore();
+      }
+    }
+
     ctx.restore();
   };
 
-  // Foreground rendering: Dynamic states + Start/Goal + Path + Hover indicator + Pulsing glows
+  // Foreground rendering: Dynamic states + Start/Goal + Hover indicator + Pulsing glows
   function drawForeground() {
     const canvas = canvasFgRef.current;
     const camera = cameraRef.current;
@@ -192,73 +240,42 @@ export default function GridCanvas({
     const cellStates = snapshot?.cellStates || new Map();
     const pulseScale = 1 + 0.06 * Math.sin(Date.now() / 150); // Pulsing factor for animations
 
-    // 1. Draw exploration cells (Discovered, Expanded, Frontier, etc.)
+    // 1. Draw dynamic exploration cells (Frontier, Current Node)
+    ctx.lineWidth = 1;
+    ctx.shadowBlur = 0;
+    
     for (const [key, state] of cellStates.entries()) {
-      const [r, c] = key.split(',').map(Number);
+      if (state !== CellState.IN_FRONTIER && state !== CellState.CURRENT) continue;
+
+      // Fast non-allocating parsing of coordinates
+      const commaIdx = key.indexOf(',');
+      const r = +key.substring(0, commaIdx);
+      const c = +key.substring(commaIdx + 1);
       const x = c * CELL_SIZE;
       const y = r * CELL_SIZE;
 
-      // Start & Goal states are rendered separately for visual prominence
-      if (state === CellState.START || state === CellState.GOAL) continue;
-
-      ctx.save();
-      
-      switch (state) {
-        case CellState.DISCOVERED:
-          ctx.fillStyle = 'rgba(79, 124, 255, 0.08)';
-          ctx.strokeStyle = 'rgba(79, 124, 255, 0.2)';
-          ctx.fillRect(x + 2, y + 2, CELL_SIZE - 4, CELL_SIZE - 4);
-          ctx.strokeRect(x + 2, y + 2, CELL_SIZE - 4, CELL_SIZE - 4);
-          break;
-
-        case CellState.IN_FRONTIER:
-          // Frontier nodes have a breathing border glow
-          ctx.fillStyle = 'rgba(56, 189, 248, 0.22)';
-          ctx.strokeStyle = `rgba(56, 189, 248, ${0.45 + 0.15 * Math.sin(Date.now() / 120)})`;
-          ctx.lineWidth = 1.5;
-          ctx.fillRect(x + 2, y + 2, CELL_SIZE - 4, CELL_SIZE - 4);
-          ctx.strokeRect(x + 2, y + 2, CELL_SIZE - 4, CELL_SIZE - 4);
-          break;
-
-        case CellState.EXPANDED:
-          ctx.fillStyle = 'rgba(79, 124, 255, 0.05)';
-          ctx.strokeStyle = 'rgba(79, 124, 255, 0.12)';
-          ctx.fillRect(x + 2, y + 2, CELL_SIZE - 4, CELL_SIZE - 4);
-          ctx.strokeRect(x + 2, y + 2, CELL_SIZE - 4, CELL_SIZE - 4);
-          break;
-
-        case CellState.CURRENT:
-          // Pulsing scale factor for current node
-          ctx.fillStyle = '#38bdf8';
-          ctx.strokeStyle = '#ffffff';
-          ctx.lineWidth = 2;
-          ctx.shadowColor = '#38bdf8';
-          ctx.shadowBlur = 10;
-          
-          ctx.translate(x + CELL_SIZE / 2, y + CELL_SIZE / 2);
-          ctx.scale(pulseScale, pulseScale);
-          ctx.fillRect(-CELL_SIZE / 2 + 3, -CELL_SIZE / 2 + 3, CELL_SIZE - 6, CELL_SIZE - 6);
-          ctx.strokeRect(-CELL_SIZE / 2 + 3, -CELL_SIZE / 2 + 3, CELL_SIZE - 6, CELL_SIZE - 6);
-          break;
-
-        case CellState.BACKTRACKED:
-          ctx.fillStyle = 'rgba(255, 93, 115, 0.1)';
-          ctx.strokeStyle = 'rgba(255, 93, 115, 0.25)';
-          ctx.fillRect(x + 2, y + 2, CELL_SIZE - 4, CELL_SIZE - 4);
-          ctx.strokeRect(x + 2, y + 2, CELL_SIZE - 4, CELL_SIZE - 4);
-          break;
-
-        case CellState.FINAL_PATH:
-          ctx.fillStyle = 'rgba(56, 189, 248, 0.85)';
-          ctx.strokeStyle = '#ffffff';
-          ctx.lineWidth = 1.5;
-          ctx.shadowColor = '#38bdf8';
-          ctx.shadowBlur = 8;
-          ctx.fillRect(x + 2, y + 2, CELL_SIZE - 4, CELL_SIZE - 4);
-          ctx.strokeRect(x + 2, y + 2, CELL_SIZE - 4, CELL_SIZE - 4);
-          break;
+      if (state === CellState.IN_FRONTIER) {
+        // Frontier nodes have a breathing border glow
+        ctx.fillStyle = 'rgba(56, 189, 248, 0.22)';
+        ctx.strokeStyle = `rgba(56, 189, 248, ${0.45 + 0.15 * Math.sin(Date.now() / 120)})`;
+        ctx.lineWidth = 1.5;
+        ctx.fillRect(x + 2, y + 2, CELL_SIZE - 4, CELL_SIZE - 4);
+        ctx.strokeRect(x + 2, y + 2, CELL_SIZE - 4, CELL_SIZE - 4);
+      } else if (state === CellState.CURRENT) {
+        ctx.save();
+        // Pulsing scale factor for current node
+        ctx.fillStyle = '#38bdf8';
+        ctx.strokeStyle = '#ffffff';
+        ctx.lineWidth = 2;
+        ctx.shadowColor = '#38bdf8';
+        ctx.shadowBlur = 10;
+        
+        ctx.translate(x + CELL_SIZE / 2, y + CELL_SIZE / 2);
+        ctx.scale(pulseScale, pulseScale);
+        ctx.fillRect(-CELL_SIZE / 2 + 3, -CELL_SIZE / 2 + 3, CELL_SIZE - 6, CELL_SIZE - 6);
+        ctx.strokeRect(-CELL_SIZE / 2 + 3, -CELL_SIZE / 2 + 3, CELL_SIZE - 6, CELL_SIZE - 6);
+        ctx.restore();
       }
-      ctx.restore();
     }
 
     // 2. Draw Start (Transmitter) & Goal (Satellite)
@@ -333,7 +350,7 @@ export default function GridCanvas({
       const hy = hoveredCell.row * CELL_SIZE;
       ctx.strokeStyle = '#38bdf8';
       ctx.lineWidth = 1.5;
-      ctx.shadowColor = '#8b5cf6';
+      ctx.shadowColor = '#38bdf8';
       ctx.shadowBlur = 6;
       ctx.strokeRect(hx + 1, hy + 1, CELL_SIZE - 2, CELL_SIZE - 2);
     }

@@ -115,57 +115,57 @@ export default function TreePanel({
     const state = cellStates.get(nodeId) || CellState.UNVISITED;
 
     let fill = 'rgba(22, 26, 35, 0.4)';
-    let stroke = 'rgba(139, 92, 246, 0.25)';
+    let stroke = 'rgba(79, 124, 255, 0.25)';
     let glow = 'rgba(0, 0, 0, 0)';
     let isCurrent = false;
-    let status = 'operational'; // 'operational' (purple), 'active' (blue), 'warning' (orange), 'critical' (red)
+    let status = 'operational'; // 'operational' (cyan/blue), 'active' (cyan), 'warning' (orange), 'critical' (red)
 
     switch (state) {
       case CellState.START:
-        fill = 'rgba(139, 92, 246, 0.15)';
-        stroke = '#8b5cf6';
-        glow = 'rgba(139, 92, 246, 0.4)';
-        status = 'operational';
+        fill = 'rgba(56, 189, 248, 0.15)';
+        stroke = '#38bdf8';
+        glow = 'rgba(56, 189, 248, 0.4)';
+        status = 'active';
         break;
       case CellState.GOAL:
-        fill = 'rgba(192, 132, 252, 0.15)';
-        stroke = '#c084fc';
-        glow = 'rgba(192, 132, 252, 0.4)';
-        status = 'operational';
+        fill = 'rgba(79, 124, 255, 0.15)';
+        stroke = '#4f7cff';
+        glow = 'rgba(79, 124, 255, 0.4)';
+        status = 'active';
         break;
       case CellState.CURRENT:
-        fill = 'rgba(59, 130, 246, 0.15)';
-        stroke = '#3b82f6';
-        glow = 'rgba(59, 130, 246, 0.8)';
+        fill = 'rgba(56, 189, 248, 0.15)';
+        stroke = '#38bdf8';
+        glow = 'rgba(56, 189, 248, 0.8)';
         isCurrent = true;
         status = 'active';
         break;
       case CellState.FINAL_PATH:
-        fill = 'rgba(139, 92, 246, 0.8)';
+        fill = 'rgba(56, 189, 248, 0.8)';
         stroke = '#ffffff';
-        glow = 'rgba(139, 92, 246, 0.6)';
-        status = 'operational';
+        glow = 'rgba(56, 189, 248, 0.6)';
+        status = 'active';
         break;
       case CellState.DISCOVERED:
-        fill = 'rgba(139, 92, 246, 0.2)';
-        stroke = 'rgba(139, 92, 246, 0.55)';
+        fill = 'rgba(79, 124, 255, 0.12)';
+        stroke = 'rgba(79, 124, 255, 0.45)';
         status = 'operational';
         break;
       case CellState.IN_FRONTIER:
-        fill = 'rgba(59, 130, 246, 0.1)';
-        stroke = 'rgba(59, 130, 246, 0.5)';
+        fill = 'rgba(56, 189, 248, 0.1)';
+        stroke = 'rgba(56, 189, 248, 0.5)';
         status = 'active';
         break;
       case CellState.EXPANDED:
-        fill = 'rgba(139, 92, 246, 0.06)';
-        stroke = 'rgba(139, 92, 246, 0.25)';
+        fill = 'rgba(79, 124, 255, 0.05)';
+        stroke = 'rgba(79, 124, 255, 0.2)';
         status = 'operational';
         break;
       case CellState.BACKTRACKED:
-        fill = 'rgba(245, 158, 11, 0.1)';
-        stroke = 'rgba(245, 158, 11, 0.4)';
-        glow = 'rgba(245, 158, 11, 0.15)';
-        status = 'warning';
+        fill = 'rgba(255, 93, 115, 0.1)';
+        stroke = 'rgba(255, 93, 115, 0.4)';
+        glow = 'rgba(255, 93, 115, 0.15)';
+        status = 'critical';
         break;
     }
 
@@ -177,9 +177,9 @@ export default function TreePanel({
     const targetState = cellStates.get(targetId);
     
     if (targetState === CellState.FINAL_PATH) {
-      return { stroke: '#8b5cf6', width: 2.2, glow: 'rgba(139, 92, 246, 0.5)' };
+      return { stroke: '#38bdf8', width: 2.2, glow: 'rgba(56, 189, 248, 0.5)' };
     }
-    return { stroke: 'rgba(139, 92, 246, 0.15)', width: 1, glow: 'none' };
+    return { stroke: 'rgba(79, 124, 255, 0.15)', width: 1, glow: 'none' };
   };
 
   if (nodes.length === 0) {
@@ -205,21 +205,21 @@ export default function TreePanel({
       <div className="absolute bottom-3 right-3 z-10 flex gap-1 select-none glass-card p-1.5 shadow-lg shadow-black/40">
         <button
           onClick={() => setTransform(prev => ({ ...prev, zoom: Math.min(prev.zoom * 1.2, 4) }))}
-          className="p-1 hover:text-primary-purple active:scale-90 transition-all cursor-pointer"
+          className="p-1 hover:text-electric-cyan active:scale-90 transition-all cursor-pointer"
           title="Zoom In"
         >
           <ZoomIn className="w-4 h-4" />
         </button>
         <button
           onClick={() => setTransform(prev => ({ ...prev, zoom: Math.max(prev.zoom * 0.8, 0.15) }))}
-          className="p-1 hover:text-primary-purple active:scale-90 transition-all cursor-pointer"
+          className="p-1 hover:text-electric-cyan active:scale-90 transition-all cursor-pointer"
           title="Zoom Out"
         >
           <ZoomOut className="w-4 h-4" />
         </button>
         <button
           onClick={centerTree}
-          className="p-1 hover:text-primary-purple active:scale-90 transition-all cursor-pointer"
+          className="p-1 hover:text-electric-cyan active:scale-90 transition-all cursor-pointer"
           title="Recenter Camera"
         >
           <Compass className="w-4 h-4" />
@@ -235,7 +235,7 @@ export default function TreePanel({
         onMouseLeave={handleMouseUp}
         style={{ minHeight: isFullscreen ? '100%' : '280px' }}
       >
-        <g transform={`translate(${transform.x}, ${transform.y}) scale(${transform.zoom})`}>
+        <g style={{ willChange: 'transform', transform: `translate3d(${transform.x}px, ${transform.y}px, 0px) scale(${transform.zoom})`, transformOrigin: '0 0' }}>
           {/* 1. Curved links (edges) */}
           {links.map((link, idx) => {
             const { source, target } = link;
@@ -343,10 +343,10 @@ export default function TreePanel({
       {/* Hover Information Tooltip */}
       {hoveredNode && (
         <div
-          className="absolute z-50 bg-cyber-gray-dark/95 border border-primary-purple text-slate-200 p-3 rounded-lg font-cyber-mono text-[10px] leading-relaxed shadow-[0_4px_24px_rgba(0,0,0,0.65)] select-none pointer-events-none w-48 backdrop-blur"
+          className="absolute z-50 bg-cyber-gray-dark/95 border border-electric-cyan/30 text-slate-200 p-3 rounded-lg font-cyber-mono text-[10px] leading-relaxed shadow-[0_4px_24px_rgba(0,0,0,0.65)] select-none pointer-events-none w-48 backdrop-blur"
           style={{ left: `${tooltipPos.x}px`, top: `${tooltipPos.y}px` }}
         >
-          <div className="border-b border-cyber-gray-light pb-1 mb-1.5 flex justify-between font-bold text-primary-purple">
+          <div className="border-b border-cyber-gray-light pb-1 mb-1.5 flex justify-between font-bold text-electric-cyan">
             <span>NODE COORDINATE</span>
             <span>({hoveredNode.id})</span>
           </div>
@@ -361,7 +361,7 @@ export default function TreePanel({
             )}
           </div>
           {hoveredNode.data.metadata && Object.keys(hoveredNode.data.metadata).length > 0 && (
-            <div className="border-t border-cyber-gray-light/30 mt-1.5 pt-1.5 text-[#c084fc]">
+            <div className="border-t border-cyber-gray-light/30 mt-1.5 pt-1.5 text-electric-cyan">
               {Object.entries(hoveredNode.data.metadata).map(([k, v]) => (
                 <div key={k} className="flex justify-between">
                   <span className="uppercase text-[9px]">{k}:</span>
