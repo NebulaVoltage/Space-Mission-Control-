@@ -69,11 +69,11 @@ export default function Timeline({
   const getTickDetails = (type) => {
     switch (type) {
       case E.NODE_EXPANDED:
-        return { color: 'bg-neon-cyan/80', show: true };
+        return { color: 'bg-primary-purple/80', show: true };
       case E.BACKTRACK:
-        return { color: 'bg-neon-purple', show: true };
+        return { color: 'bg-rose-500', show: true };
       case E.PATH_TRACED:
-        return { color: 'bg-neon-green', show: true };
+        return { color: 'bg-emerald-400', show: true };
       case E.ALGORITHM_COMPLETE:
         return { color: 'bg-white shadow-[0_0_4px_#fff]', show: true };
       default:
@@ -85,10 +85,10 @@ export default function Timeline({
   const description = currentEvent?.explanation || 'Simulation standby. Click Play or drag the playhead.';
 
   return (
-    <div className="bg-cyber-gray-dark border border-cyber-gray-light p-4 flex flex-col gap-3 shadow-xl w-full select-none">
-      <div className="flex justify-between items-center text-[10px] font-cyber-header text-slate-500">
+    <div className="glass-card p-4 flex flex-col gap-3 shadow-xl w-full select-none relative overflow-hidden">
+      <div className="flex justify-between items-center text-[10px] font-cyber-header text-slate-400">
         <span>TIMELINE TELEMETRY SCRUBBER</span>
-        <span className="font-cyber-mono text-neon-cyan">
+        <span className="font-cyber-mono text-primary-purple font-bold">
           {totalSteps > 0 ? `${Math.round(percentage)}%` : '0%'}
         </span>
       </div>
@@ -102,15 +102,15 @@ export default function Timeline({
         >
           {/* Filled track progress */}
           <div
-            className="h-full bg-gradient-to-r from-neon-cyan to-neon-cyan/40 rounded-full"
+            className="h-full bg-gradient-to-r from-primary-purple to-secondary-purple rounded-full"
             style={{ width: `${percentage}%` }}
           />
 
           {/* Draggable Playhead handle */}
           {totalSteps > 0 && (
             <div
-              className={`absolute top-1/2 -translate-y-1/2 w-3.5 h-3.5 rounded-full bg-cyber-black border-2 border-neon-cyan shadow-[0_0_8px_rgba(0,210,255,0.4)] -ml-1.5 transition-shadow ${
-                isScrubbing ? 'shadow-[0_0_12px_rgba(0,210,255,0.7)] border-white' : ''
+              className={`absolute top-1/2 -translate-y-1/2 w-3.5 h-3.5 rounded-full bg-cyber-black border-2 border-primary-purple shadow-[0_0_8px_rgba(139,92,246,0.4)] -ml-1.5 transition-shadow ${
+                isScrubbing ? 'shadow-[0_0_12px_rgba(139,92,246,0.7)] border-white' : ''
               }`}
               style={{ left: `${percentage}%` }}
             />
@@ -136,7 +136,7 @@ export default function Timeline({
       {/* Current Step Explanation Panel */}
       <div className="bg-cyber-black border border-cyber-gray-light/40 p-2.5 rounded min-h-12 flex items-center shadow-inner">
         <p className="font-cyber-mono text-xs text-slate-400 leading-relaxed">
-          <span className="text-neon-cyan font-bold tracking-wider mr-2">
+          <span className="text-primary-purple font-bold tracking-wider mr-2">
             [SYS_LOG]
           </span>
           {description}
