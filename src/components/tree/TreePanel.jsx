@@ -85,29 +85,6 @@ export default function TreePanel({
     setIsDragging(false);
   };
 
-  const handleWheel = (e) => {
-    e.preventDefault();
-    const zoomFactor = e.deltaY < 0 ? 1.12 : 0.88;
-    const newZoom = Math.min(Math.max(transform.zoom * zoomFactor, 0.15), 4.0);
-
-    const svg = svgRef.current;
-    if (!svg) return;
-    const rect = svg.getBoundingClientRect();
-    const mouseX = e.clientX - rect.left;
-    const mouseY = e.clientY - rect.top;
-
-    // Zoom centered on cursor
-    setTransform(prev => {
-      const worldX = (mouseX - prev.x) / prev.zoom;
-      const worldY = (mouseY - prev.y) / prev.zoom;
-      return {
-        zoom: newZoom,
-        x: mouseX - worldX * newZoom,
-        y: mouseY - worldY * newZoom,
-      };
-    });
-  };
-
   // Node Hover Tooltip Helpers
   const handleNodeMouseEnter = (e, node) => {
     setHoveredNode(node);
@@ -242,7 +219,6 @@ export default function TreePanel({
         </button>
       </div>
 
-      {/* Tree Visualization Canvas (SVG-based) */}
       <svg
         ref={svgRef}
         className="w-full h-full block cursor-grab active:cursor-grabbing"
@@ -250,7 +226,6 @@ export default function TreePanel({
         onMouseMove={handleMouseMove}
         onMouseUp={handleMouseUp}
         onMouseLeave={handleMouseUp}
-        onWheel={handleWheel}
         style={{ minHeight: isFullscreen ? '100%' : '280px' }}
       >
         <g transform={`translate(${transform.x}, ${transform.y}) scale(${transform.zoom})`}>
