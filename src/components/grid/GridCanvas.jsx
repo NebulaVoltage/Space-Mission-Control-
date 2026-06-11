@@ -101,22 +101,22 @@ export default function GridCanvas({
     ctx.scale(dpr, dpr);
     camera.applyTransform(ctx);
 
-    // LAYER 1: Deep Space Background
-    ctx.fillStyle = '#03040A';
+    // LAYER 1: Obsidian black background
+    ctx.fillStyle = '#080808';
     ctx.fillRect(0, 0, worldWidth, worldHeight);
 
-    // Layer 1 overlay: Soft volumetric radial lighting illusion (center-weighted)
+    // Layer 1 overlay: subtle teal center glow
     const centerGrad = ctx.createRadialGradient(
       worldWidth / 2, worldHeight / 2, 0,
       worldWidth / 2, worldHeight / 2, Math.max(worldWidth, worldHeight) * 0.55
     );
-    centerGrad.addColorStop(0, 'rgba(109, 93, 255, 0.03)');
-    centerGrad.addColorStop(1, 'rgba(3, 4, 10, 0)');
+    centerGrad.addColorStop(0, 'rgba(0, 209, 178, 0.025)');
+    centerGrad.addColorStop(1, 'rgba(8, 8, 8, 0)');
     ctx.fillStyle = centerGrad;
     ctx.fillRect(0, 0, worldWidth, worldHeight);
 
-    // LAYER 2: Structural Framework (Axes Calibration Ticks & Grid Borders)
-    ctx.strokeStyle = 'rgba(109, 93, 255, 0.12)';
+    // LAYER 2: Structural grid lines — coral tinted
+    ctx.strokeStyle = 'rgba(255, 122, 0, 0.08)';
     ctx.lineWidth = 0.5;
     ctx.strokeRect(0, 0, worldWidth, worldHeight);
 

@@ -1,60 +1,98 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300..800&family=JetBrains+Mono:wght@100..800&family=Space+Grotesk:wght@300..700&display=swap');
-
 @import "tailwindcss";
 
 @theme {
+  /* ════════════════════════════════════════
+     NEW BRAND COLOR IDENTITY
+     Obsidian / Coral / Teal — rare, premium
+  ════════════════════════════════════════ */
+  --color-obsidian:       #080808;
+  --color-graphite:       #111111;
+  --color-graphite-mid:   #1A1A1A;
+  --color-graphite-panel: #222222;
+  --color-graphite-border:#2E2E2E;
+
+  --color-ivory:          #F5F1E8;
+  --color-ivory-muted:    #A09A8E;
+  --color-ivory-dim:      #5C5650;
+
+  --color-coral:          #FF7A00;
+  --color-coral-light:    #FF9A3C;
+  --color-coral-soft:     #FF7A001A;
+
+  --color-teal:           #00D1B2;
+  --color-teal-light:     #33DCC5;
+  --color-teal-soft:      #00D1B215;
+
+  --color-success:        #22C55E;
+  --color-critical:       #EF4444;
+  --color-warning:        #F59E0B;
+
+  /* ════════════════════════════════════════
+     BACKWARD COMPAT REMAPS
+     Old Tailwind class names → new palette
+     (existing components keep working)
+  ════════════════════════════════════════ */
+  --color-cyber-black:     #080808;
+  --color-cyber-gray-dark: #111111;
+  --color-cyber-gray:      #1A1A1A;
+  --color-cyber-gray-light:#2E2E2E;
+
+  --color-electric-cyan:   #00D1B2;
+  --color-royal-blue:      #FF7A00;
+  --color-deep-violet:     #FF9A3C;
+  --color-neon-cyan:       #00D1B2;
+  --color-neon-green:      #22C55E;
+  --color-neon-red:        #EF4444;
+  --color-neon-amber:      #FF7A00;
+  --color-neon-purple:     #FF9A3C;
+  --color-primary-purple:  #FF7A00;
+  --color-secondary-purple:#00D1B2;
+  --color-accent-violet:   #FF9A3C;
+  --color-primary-accent:  #FF7A00;
+  --color-secondary-accent:#00D1B2;
+  --color-tertiary-accent: #00D1B2;
+  --color-text-primary:    #F5F1E8;
+  --color-text-secondary:  #A09A8E;
+  --color-text-muted:      #5C5650;
+
+  /* Fonts */
   --font-space: "Space Grotesk", sans-serif;
-  --font-sans: "Inter", sans-serif;
-  --font-mono: "JetBrains Mono", monospace;
-  
-  --color-cyber-black: #03040A;
-  --color-cyber-gray-dark: #080C14;
-  --color-cyber-gray: #101827;
-  --color-cyber-gray-light: #1f2937;
-  
-  --color-electric-cyan: #3abeff;
-  --color-royal-blue: #6d5dff;
-  --color-deep-violet: #8e84ff;
-  
-  --color-primary-accent: #6d5dff;
-  --color-secondary-accent: #3abeff;
-  --color-tertiary-accent: #8e84ff;
-  
-  --color-success: #00d084;
-  --color-warning: #ffb547;
-  --color-critical: #ff5d73;
-  
-  --color-text-primary: #e5e7eb;
-  --color-text-secondary: #9ca3af;
-  --color-text-muted: #6b7280;
-  
-  /* Semantic backward-compatibility mappings */
-  --color-neon-cyan: #3abeff;
-  --color-neon-amber: #6d5dff;
-  --color-neon-red: #ff5d73;
-  --color-neon-green: #00d084;
-  --color-neon-purple: #8e84ff;
-  
-  --color-primary-purple: #6d5dff;
-  --color-secondary-purple: #3abeff;
-  --color-accent-violet: #8e84ff;
+  --font-sans:  "Inter", sans-serif;
+  --font-mono:  "JetBrains Mono", monospace;
 }
 
-/* Custom base resets */
+/* ════════════════════════════════════════
+   BASE RESET
+════════════════════════════════════════ */
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
 body {
   margin: 0;
-  background-color: var(--color-cyber-black);
-  background-image: linear-gradient(180deg, #03040A 0%, #05070f 100%);
-  color: var(--color-text-primary);
-  font-family: var(--font-sans);
+  background-color: #080808;
+  color: #F5F1E8;
+  font-family: "Inter", sans-serif;
   overflow-x: hidden;
   min-height: 100vh;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
 }
 
-/* Typography Scales for AAA spacecraft dashboard */
+/* ════════════════════════════════════════
+   TYPOGRAPHY SYSTEM
+════════════════════════════════════════ */
+.font-display {
+  font-family: "Space Grotesk", sans-serif;
+  letter-spacing: -0.04em;
+  font-weight: 700;
+}
+
 .font-cyber-header {
   font-family: "Space Grotesk", sans-serif;
-  letter-spacing: 0.05em;
+  letter-spacing: 0.08em;
   font-weight: 700;
   text-transform: uppercase;
 }
@@ -64,89 +102,219 @@ body {
   letter-spacing: -0.01em;
 }
 
-/* Bounding framework lines (low opacity orbital map background) */
-.orbital-grid {
-  position: fixed;
-  inset: 0;
-  z-index: 0;
-  pointer-events: none;
-  background-image: 
-    linear-gradient(to right, rgba(109, 93, 255, 0.02) 1px, transparent 1px),
-    linear-gradient(to bottom, rgba(109, 93, 255, 0.02) 1px, transparent 1px);
-  background-size: 60px 60px;
-  background-position: center center;
+/* ════════════════════════════════════════
+   LANDING PAGE BACKGROUND LAYERS
+════════════════════════════════════════ */
+
+/* Tiny dot grid — depth layer */
+.dot-grid {
+  background-image: radial-gradient(circle, rgba(245, 241, 232, 0.055) 1px, transparent 1px);
+  background-size: 28px 28px;
 }
 
-/* Physical space subsystem panel styling */
+/* Thin structural line grid */
+.line-grid {
+  background-image:
+    linear-gradient(to right,  rgba(245,241,232,0.018) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(245,241,232,0.018) 1px, transparent 1px);
+  background-size: 56px 56px;
+}
+
+/* Atmospheric coral glow — top-right hero */
+.atmos-coral {
+  position: absolute;
+  top: -20%;
+  right: -8%;
+  width: 55%;
+  height: 65%;
+  background: radial-gradient(ellipse at center, rgba(255,122,0,0.07) 0%, transparent 70%);
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* Atmospheric teal glow — bottom-left hero */
+.atmos-teal {
+  position: absolute;
+  bottom: -10%;
+  left: -5%;
+  width: 45%;
+  height: 55%;
+  background: radial-gradient(ellipse at center, rgba(0,209,178,0.06) 0%, transparent 70%);
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* ════════════════════════════════════════
+   LANDING PAGE BUTTONS
+════════════════════════════════════════ */
+.btn-primary {
+  background: #FF7A00;
+  color: #080808;
+  font-family: "Space Grotesk", sans-serif;
+  font-weight: 700;
+  font-size: 0.8125rem;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  padding: 15px 36px;
+  border: none;
+  cursor: pointer;
+  transition: opacity 0.15s ease, transform 0.15s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  flex-shrink: 0;
+}
+
+.btn-primary:hover {
+  opacity: 0.88;
+  transform: translateY(-2px);
+}
+
+.btn-primary:active {
+  transform: translateY(0);
+  opacity: 1;
+}
+
+.btn-ghost {
+  background: transparent;
+  color: #5C5650;
+  font-family: "Space Grotesk", sans-serif;
+  font-weight: 600;
+  font-size: 0.8125rem;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  padding: 15px 36px;
+  border: 1px solid #2E2E2E;
+  cursor: pointer;
+  transition: border-color 0.15s ease, color 0.15s ease, transform 0.15s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  flex-shrink: 0;
+}
+
+.btn-ghost:hover {
+  border-color: #A09A8E;
+  color: #F5F1E8;
+  transform: translateY(-2px);
+}
+
+/* ════════════════════════════════════════
+   SECTION & LABEL STYLES
+════════════════════════════════════════ */
+.section-eyebrow {
+  font-family: "JetBrains Mono", monospace;
+  font-size: 0.6875rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: #5C5650;
+}
+
+.section-divider {
+  width: 40px;
+  height: 1px;
+  background: #FF7A00;
+  display: block;
+}
+
+/* ════════════════════════════════════════
+   MISSION CONTROL COMPONENT CLASSES
+   (used inside the app, not landing page)
+════════════════════════════════════════ */
 .control-module {
-  background-color: var(--color-cyber-gray-dark);
-  border: 1px solid rgba(109, 93, 255, 0.15);
-  border-radius: 4px;
+  background-color: #111111;
+  border: 1px solid #2E2E2E;
+  border-radius: 2px;
   padding: 16px;
   position: relative;
-  transition: transform 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
+  transition: border-color 0.15s ease;
 }
 
-/* Physical subsystem header with beveled look */
+.control-module:hover {
+  border-color: #3A3A3A;
+}
+
 .control-module-header {
-  border-bottom: 1px solid rgba(109, 93, 255, 0.25);
-  padding-bottom: 8px;
-  margin-bottom: 12px;
+  border-bottom: 1px solid #2E2E2E;
+  padding-bottom: 10px;
+  margin-bottom: 14px;
   display: flex;
   justify-content: space-between;
   align-items: center;
 }
 
-/* Tactical HUD corner indicators */
-.hud-bracket-tl { position: absolute; top: -1px; left: -1px; width: 6px; height: 6px; border-top: 2px solid var(--color-electric-cyan); border-left: 2px solid var(--color-electric-cyan); }
-.hud-bracket-tr { position: absolute; top: -1px; right: -1px; width: 6px; height: 6px; border-top: 2px solid var(--color-electric-cyan); border-right: 2px solid var(--color-electric-cyan); }
-.hud-bracket-bl { position: absolute; bottom: -1px; left: -1px; width: 6px; height: 6px; border-bottom: 2px solid var(--color-electric-cyan); border-left: 2px solid var(--color-electric-cyan); }
-.hud-bracket-br { position: absolute; bottom: -1px; right: -1px; width: 6px; height: 6px; border-bottom: 2px solid var(--color-electric-cyan); border-right: 2px solid var(--color-electric-cyan); }
+/* HUD corner brackets — coral tinted, thin */
+.hud-bracket-tl { position: absolute; top: -1px; left: -1px; width: 9px; height: 9px; border-top: 1px solid #FF7A00; border-left: 1px solid #FF7A00; }
+.hud-bracket-tr { position: absolute; top: -1px; right: -1px; width: 9px; height: 9px; border-top: 1px solid #FF7A00; border-right: 1px solid #FF7A00; }
+.hud-bracket-bl { position: absolute; bottom: -1px; left: -1px; width: 9px; height: 9px; border-bottom: 1px solid #FF7A00; border-left: 1px solid #FF7A00; }
+.hud-bracket-br { position: absolute; bottom: -1px; right: -1px; width: 9px; height: 9px; border-bottom: 1px solid #FF7A00; border-right: 1px solid #FF7A00; }
 
-/* Sci-fi Hover Actions: 1px translate, subtle glow, border highlight */
+/* Sci-fi interactive button */
 .sci-fi-button {
-  background-color: var(--color-cyber-gray);
-  border: 1px solid rgba(109, 93, 255, 0.25);
-  color: var(--color-text-primary);
+  background-color: #1A1A1A;
+  border: 1px solid #2E2E2E;
+  color: #A09A8E;
   border-radius: 2px;
-  transition: transform 0.1s ease, border-color 0.1s ease, box-shadow 0.1s ease;
+  transition: border-color 0.12s ease, color 0.12s ease, transform 0.1s ease;
   cursor: pointer;
 }
 
 .sci-fi-button:hover:not(:disabled) {
+  border-color: #FF7A00;
+  color: #F5F1E8;
   transform: translateY(-1px);
-  border-color: var(--color-electric-cyan);
-  box-shadow: 0 0 8px rgba(58, 190, 255, 0.25);
 }
 
 .sci-fi-button:active:not(:disabled) {
-  transform: translateY(0px);
+  transform: translateY(0);
 }
 
-/* Grid Cell styling */
+/* Grid cell for reference in canvas components */
 .grid-cell {
   aspect-ratio: 1;
-  border: 1px solid rgba(109, 93, 255, 0.05);
-  transition: background-color 0.1s ease, border-color 0.1s ease;
+  border: 1px solid rgba(245, 241, 232, 0.035);
 }
 
-.grid-cell:hover {
-  border-color: var(--color-electric-cyan);
-  background-color: rgba(58, 190, 255, 0.08);
-}
-
-/* Minimal tactual scrollbars */
-::-webkit-scrollbar {
-  width: 5px;
-  height: 5px;
-}
-::-webkit-scrollbar-track {
-  background: var(--color-cyber-black);
-}
-::-webkit-scrollbar-thumb {
-  background: rgba(109, 93, 255, 0.2);
+/* Legacy glass-card → control-module */
+.glass-card {
+  background-color: #111111;
+  border: 1px solid #2E2E2E;
   border-radius: 2px;
 }
-::-webkit-scrollbar-thumb:hover {
-  background: var(--color-electric-cyan);
+
+.glass-panel {
+  background-color: #111111;
+  border: 1px solid #2E2E2E;
+}
+
+.glass-card-hover:hover {
+  border-color: #3A3A3A;
+}
+
+/* Orbital grid (legacy — now just minimal line grid) */
+.orbital-grid {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background-image:
+    linear-gradient(to right,  rgba(255,122,0,0.012) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(255,122,0,0.012) 1px, transparent 1px);
+  background-size: 64px 64px;
+}
+
+/* ════════════════════════════════════════
+   PREMIUM SCROLLBAR
+════════════════════════════════════════ */
+::-webkit-scrollbar { width: 4px; height: 4px; }
+::-webkit-scrollbar-track { background: #080808; }
+::-webkit-scrollbar-thumb { background: #2E2E2E; border-radius: 2px; }
+::-webkit-scrollbar-thumb:hover { background: #FF7A00; }
+
+/* ════════════════════════════════════════
+   SELECTION
+════════════════════════════════════════ */
+::selection {
+  background: rgba(255,122,0,0.25);
+  color: #F5F1E8;
 }
