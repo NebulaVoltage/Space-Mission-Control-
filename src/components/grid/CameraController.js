@@ -14,6 +14,10 @@ export class CameraController {
     this.isPanningState = false;
     this.startX = 0;
     this.startY = 0;
+    this.zoomAnimationId = null;
+    this.targetZoom = undefined;
+    this.targetOffsetX = undefined;
+    this.targetOffsetY = undefined;
   }
 
   /**
@@ -45,34 +49,93 @@ export class CameraController {
   }
 
   /**
-   * Zoom toward the mouse cursor position
+   * Clear any active zoom animation and targets
    */
-  handleWheel(event) {
-    event.preventDefault();
+  clearAnimations() {
+    if (this.zoomAnimationId) {
+      cancelAnimationFrame(this.zoomAnimationId);
+      this.zoomAnimationId = null;
+    }
+    this.targetZoom = undefined;
+    this.targetOffsetX = undefined;
+    this.targetOffsetY = undefined;
+  }
+
+  /**
+   * Zoom toward the center of the canvas viewport with a smooth transition
+   */
+  zoomToCenter(zoomIn, onStep) {
+    if (this.zoomAnimationId) {
+      cancelAnimationFrame(this.zoomAnimationId);
+      this.zoomAnimationId = null;
+    }
+
     const rect = this.canvas.getBoundingClientRect();
-    const mouseX = event.clientX - rect.left;
-    const mouseY = event.clientY - rect.top;
+    const centerX = rect.width / 2;
+    const centerY = rect.height / 2;
 
-    // Convert mouse to world position before zoom change
-    const worldX = (mouseX - this.offsetX) / this.zoom;
-    const worldY = (mouseY - this.offsetY) / this.zoom;
+    const zoomFactor = zoomIn ? 1.3 : 1 / 1.3;
+    const baseZoom = this.targetZoom !== undefined ? this.targetZoom : this.zoom;
+    const newZoom = Math.min(Math.max(baseZoom * zoomFactor, 0.3), 5.0);
 
-    // Apply zoom
-    const zoomFactor = event.deltaY < 0 ? 1.15 : 0.85;
-    const newZoom = Math.min(Math.max(this.zoom * zoomFactor, 0.3), 5.0);
+    if (Math.abs(newZoom - baseZoom) < 0.001) return;
 
-    this.zoom = newZoom;
+    const currentTargetOffsetX = this.targetOffsetX !== undefined ? this.targetOffsetX : this.offsetX;
+    const currentTargetOffsetY = this.targetOffsetY !== undefined ? this.targetOffsetY : this.offsetY;
+    const currentTargetZoom = this.targetZoom !== undefined ? this.targetZoom : this.zoom;
 
-    // Reposition offset so that world coordinates under cursor stay under cursor
-    this.offsetX = mouseX - worldX * this.zoom;
-    this.offsetY = mouseY - worldY * this.zoom;
+    const worldX = (centerX - currentTargetOffsetX) / currentTargetZoom;
+    const worldY = (centerY - currentTargetOffsetY) / currentTargetZoom;
+
+    const targetOffsetX = centerX - worldX * newZoom;
+    const targetOffsetY = centerY - worldY * newZoom;
+
+    this.targetZoom = newZoom;
+    this.targetOffsetX = targetOffsetX;
+    this.targetOffsetY = targetOffsetY;
+
+    const startZoom = this.zoom;
+    const startOffsetX = this.offsetX;
+    const startOffsetY = this.offsetY;
+    const startTime = performance.now();
+    const duration = 150; // duration in ms
+
+    const animate = (currentTime) => {
+      const elapsed = currentTime - startTime;
+      const progress = Math.min(elapsed / duration, 1);
+      const easeProgress = 1 - Math.pow(1 - progress, 3); // Cubic ease-out
+
+      this.zoom = startZoom + (this.targetZoom - startZoom) * easeProgress;
+      this.offsetX = startOffsetX + (this.targetOffsetX - startOffsetX) * easeProgress;
+      this.offsetY = startOffsetY + (this.targetOffsetY - startOffsetY) * easeProgress;
+
+      if (onStep) {
+        onStep(this.zoom);
+      }
+
+      if (progress < 1) {
+        this.zoomAnimationId = requestAnimationFrame(animate);
+      } else {
+        this.zoom = this.targetZoom;
+        this.offsetX = this.targetOffsetX;
+        this.offsetY = this.targetOffsetY;
+        this.targetZoom = undefined;
+        this.targetOffsetX = undefined;
+        this.targetOffsetY = undefined;
+        this.zoomAnimationId = null;
+        if (onStep) {
+          onStep(this.zoom);
+        }
+      }
+    };
+
+    this.zoomAnimationId = requestAnimationFrame(animate);
   }
 
   /**
    * Start panning from the current mouse position
    */
   handleMouseDown(event) {
-    // Standard middle click, or left click with Space/Alt/Ctrl, or left click when dragging viewport
     this.isPanningState = true;
     this.startX = event.clientX - this.offsetX;
     this.startY = event.clientY - this.offsetY;
@@ -98,6 +161,7 @@ export class CameraController {
    * Fit the grid bounds centered inside the canvas dimensions
    */
   fitToScreen(worldWidth, worldHeight, canvasWidth, canvasHeight) {
+    this.clearAnimations();
     const padding = 40;
     const scaleX = (canvasWidth - padding) / worldWidth;
     const scaleY = (canvasHeight - padding) / worldHeight;
@@ -110,6 +174,7 @@ export class CameraController {
    * Center camera on a specific world coordinate
    */
   centerOn(worldX, worldY, canvasWidth, canvasHeight) {
+    this.clearAnimations();
     this.offsetX = canvasWidth / 2 - worldX * this.zoom;
     this.offsetY = canvasHeight / 2 - worldY * this.zoom;
   }
