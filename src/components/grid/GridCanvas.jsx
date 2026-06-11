@@ -24,6 +24,7 @@ export default function GridCanvas({
   const [hoveredCell, setHoveredCell] = useState(null);
   const [isPanning, setIsPanning] = useState(false);
   const [isDrawing, setIsDrawing] = useState(false);
+  const [currentZoom, setCurrentZoom] = useState(1);
 
   // Keep a ref of mouse positions for hit testing
   const mouseRef = useRef({ x: 0, y: 0 });
@@ -72,6 +73,7 @@ export default function GridCanvas({
 
     // Initialize/Reset camera fits
     camera.fitToScreen(worldWidth, worldHeight, width, height);
+    setCurrentZoom(camera.zoom);
     drawAll();
   }, [worldWidth, worldHeight]);
 
@@ -406,13 +408,6 @@ export default function GridCanvas({
     }
   };
 
-  const handleWheel = (e) => {
-    const camera = cameraRef.current;
-    if (!camera) return;
-    camera.handleWheel(e);
-    drawAll();
-  };
-
   // Prevent context menu to allow panning with right click
   const handleContextMenu = (e) => {
     e.preventDefault();
@@ -429,7 +424,6 @@ export default function GridCanvas({
       onMouseMove={handleMouseMove}
       onMouseUp={handleMouseUp}
       onMouseLeave={handleMouseUp}
-      onWheel={handleWheel}
       onContextMenu={handleContextMenu}
     >
       <canvas
@@ -444,7 +438,50 @@ export default function GridCanvas({
       />
       {/* UI controls inside scanner viewport */}
       <div className="absolute bottom-2 left-2 z-10 font-cyber-mono text-[9px] text-slate-500 bg-cyber-black/80 px-2 py-1 border border-cyber-gray-light rounded backdrop-blur select-none pointer-events-none">
-        SCROLLER: ZOOM | DRAG (RIGHT-CLICK/SHIFT): PAN | DRAG (LEFT-CLICK): PAINT
+        DRAG (RIGHT-CLICK/SHIFT): PAN | DRAG (LEFT-CLICK): PAINT
+      </div>
+
+      {/* Floating Zoom Controls */}
+      <div 
+        className="absolute bottom-2 right-2 z-10 flex items-center gap-1.5 bg-cyber-black/80 px-2 py-1 border border-cyber-gray-light rounded backdrop-blur select-none shadow-lg shadow-black/40"
+        onMouseDown={(e) => e.stopPropagation()}
+        onMouseMove={(e) => e.stopPropagation()}
+        onMouseUp={(e) => e.stopPropagation()}
+        onClick={(e) => e.stopPropagation()}
+      >
+        <button
+          onClick={() => {
+            if (cameraRef.current) {
+              cameraRef.current.zoomToCenter(false, (z) => {
+                setCurrentZoom(z);
+                drawAll();
+              });
+            }
+          }}
+          disabled={currentZoom <= 0.301}
+          className="w-6 h-6 flex items-center justify-center font-cyber-mono font-bold text-xs rounded border border-cyber-gray-light bg-cyber-gray-dark/50 text-slate-400 hover:text-neon-cyan hover:border-neon-cyan hover:bg-neon-cyan/10 hover:shadow-[0_0_8px_rgba(0,210,255,0.25)] active:scale-95 disabled:opacity-20 disabled:pointer-events-none focus:outline-none focus:ring-1 focus:ring-neon-cyan transition-all cursor-pointer"
+          title="Zoom Out"
+        >
+          −
+        </button>
+        <span className="font-cyber-mono text-[9px] text-slate-400 min-w-[34px] text-center">
+          {Math.round(currentZoom * 100)}%
+        </span>
+        <button
+          onClick={() => {
+            if (cameraRef.current) {
+              cameraRef.current.zoomToCenter(true, (z) => {
+                setCurrentZoom(z);
+                drawAll();
+              });
+            }
+          }}
+          disabled={currentZoom >= 4.99}
+          className="w-6 h-6 flex items-center justify-center font-cyber-mono font-bold text-xs rounded border border-cyber-gray-light bg-cyber-gray-dark/50 text-slate-400 hover:text-neon-cyan hover:border-neon-cyan hover:bg-neon-cyan/10 hover:shadow-[0_0_8px_rgba(0,210,255,0.25)] active:scale-95 disabled:opacity-20 disabled:pointer-events-none focus:outline-none focus:ring-1 focus:ring-neon-cyan transition-all cursor-pointer"
+          title="Zoom In"
+        >
+          +
+        </button>
       </div>
     </div>
   );
