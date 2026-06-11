@@ -134,7 +134,7 @@ export default function TerrainEditor({
           <span>RANDOMIZE</span>
         </button>
         <button
-          onClick={handleClearAll}
+          onClick={onClearAll}
           disabled={disabled}
           className="sci-fi-button flex items-center justify-center gap-1.5 py-2.5 text-[9px] font-cyber-header tracking-widest rounded hover:bg-cyber-gray hover:text-white disabled:opacity-45"
         >
