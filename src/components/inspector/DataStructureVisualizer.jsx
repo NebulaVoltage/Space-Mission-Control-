@@ -29,16 +29,16 @@ export default function DataStructureVisualizer({ snapshot }) {
   };
 
   const renderQueue = () => {
-    // Show first 15 items, truncate remainder
+    // Show first 12 items, truncate remainder
     const maxVisible = 12;
     const visibleItems = items.slice(0, maxVisible);
     const extraCount = items.length - maxVisible;
 
     return (
       <div className="flex flex-col gap-3 w-full">
-        <div className="flex items-center justify-between text-[10px] font-cyber-header text-slate-500">
-          <span className="flex items-center gap-1"><ArrowLeft className="w-3.5 h-3.5 text-neon-cyan" /> DEQUEUE (FRONT)</span>
-          <span className="font-cyber-mono text-neon-cyan">SIZE: {items.length}</span>
+        <div className="flex items-center justify-between text-[10px] font-cyber-header text-slate-400">
+          <span className="flex items-center gap-1"><ArrowLeft className="w-3.5 h-3.5 text-primary-purple" /> DEQUEUE (FRONT)</span>
+          <span className="font-cyber-mono text-primary-purple font-bold">SIZE: {items.length}</span>
           <span>ENQUEUE (BACK)</span>
         </div>
         <div className="flex items-center gap-1.5 overflow-x-auto py-2 px-1 border border-cyber-gray-light bg-cyber-black rounded-lg min-h-16 scrollbar-thin scrollbar-thumb-cyber-gray-light">
@@ -59,9 +59,9 @@ export default function DataStructureVisualizer({ snapshot }) {
                     transition={{ duration: 0.18 }}
                     className={`flex-shrink-0 px-2.5 py-2 border text-[10px] font-cyber-mono rounded-md flex items-center justify-center min-w-16 text-center select-none ${
                       isHead
-                        ? 'border-neon-cyan text-neon-cyan bg-neon-cyan/10 font-bold shadow-[0_0_8px_rgba(0,210,255,0.15)]'
+                        ? 'border-primary-purple text-primary-purple bg-primary-purple/10 font-bold shadow-[0_0_8px_rgba(139,92,246,0.15)]'
                         : isCurrentNeighbor
-                        ? 'border-neon-amber text-neon-amber bg-neon-amber/5 font-bold'
+                        ? 'border-accent-violet text-accent-violet bg-accent-violet/5 font-bold'
                         : 'border-cyber-gray-light text-slate-400 bg-cyber-gray/40'
                     }`}
                   >
@@ -83,17 +83,15 @@ export default function DataStructureVisualizer({ snapshot }) {
 
   const renderStack = () => {
     const maxVisible = 8;
-    // For stack, items are pushed/popped from the back of array in algorithms.js
-    // Stack top is the LAST item in items array
     const stackItems = [...items].reverse();
     const visibleItems = stackItems.slice(0, maxVisible);
     const extraCount = stackItems.length - maxVisible;
 
     return (
       <div className="flex flex-col gap-2.5 w-full">
-        <div className="flex items-center justify-between text-[10px] font-cyber-header text-slate-500">
-          <span className="flex items-center gap-1"><ArrowUp className="w-3.5 h-3.5 text-neon-purple animate-pulse" /> PUSH / POP (TOP)</span>
-          <span className="font-cyber-mono text-neon-purple">SIZE: {items.length}</span>
+        <div className="flex items-center justify-between text-[10px] font-cyber-header text-slate-400">
+          <span className="flex items-center gap-1"><ArrowUp className="w-3.5 h-3.5 text-accent-violet animate-pulse" /> PUSH / POP (TOP)</span>
+          <span className="font-cyber-mono text-accent-violet font-bold">SIZE: {items.length}</span>
         </div>
         <div className="flex flex-col gap-1 px-3 py-2 border border-cyber-gray-light bg-cyber-black rounded-lg min-h-24 max-h-56 overflow-y-auto">
           <AnimatePresence initial={false}>
@@ -112,12 +110,12 @@ export default function DataStructureVisualizer({ snapshot }) {
                     transition={{ duration: 0.15 }}
                     className={`px-3 py-1.5 border text-[10px] font-cyber-mono rounded flex justify-between items-center select-none ${
                       isTop
-                        ? 'border-neon-purple text-neon-purple bg-neon-purple/10 font-bold shadow-[0_0_8px_rgba(157,78,221,0.15)]'
+                        ? 'border-accent-violet text-accent-violet bg-accent-violet/10 font-bold shadow-[0_0_8px_rgba(192,132,252,0.15)]'
                         : 'border-cyber-gray-light text-slate-400 bg-cyber-gray/40'
                     }`}
                   >
                     <span>{getItemLabel(item)}</span>
-                    {isTop && <span className="text-[8px] tracking-wider uppercase font-bold text-neon-purple">TOP</span>}
+                    {isTop && <span className="text-[8px] tracking-wider uppercase font-bold text-accent-violet">TOP</span>}
                   </motion.div>
                 );
               })
@@ -140,9 +138,9 @@ export default function DataStructureVisualizer({ snapshot }) {
 
     return (
       <div className="flex flex-col gap-2.5 w-full">
-        <div className="flex items-center justify-between text-[10px] font-cyber-header text-slate-500">
-          <span className="flex items-center gap-1"><ListCollapse className="w-3.5 h-3.5 text-neon-amber" /> EXTRACT MIN (TOP)</span>
-          <span className="font-cyber-mono text-neon-amber">SIZE: {items.length}</span>
+        <div className="flex items-center justify-between text-[10px] font-cyber-header text-slate-400">
+          <span className="flex items-center gap-1"><ListCollapse className="w-3.5 h-3.5 text-secondary-purple" /> EXTRACT MIN (TOP)</span>
+          <span className="font-cyber-mono text-secondary-purple font-bold">SIZE: {items.length}</span>
         </div>
         <div className="flex flex-col gap-1 px-3 py-2 border border-cyber-gray-light bg-cyber-black rounded-lg min-h-24 max-h-56 overflow-y-auto">
           <AnimatePresence initial={false}>
@@ -152,8 +150,6 @@ export default function DataStructureVisualizer({ snapshot }) {
               visibleItems.map((item, idx) => {
                 const id = getItemId(item);
                 const isMin = idx === 0;
-                
-                // Detailed breakdown for A* open list items
                 const isAStarItem = item.f !== undefined;
                 
                 return (
@@ -165,7 +161,7 @@ export default function DataStructureVisualizer({ snapshot }) {
                     transition={{ duration: 0.15 }}
                     className={`px-3 py-1.5 border text-[10px] font-cyber-mono rounded flex justify-between items-center select-none ${
                       isMin
-                        ? 'border-neon-amber text-neon-amber bg-neon-amber/10 font-bold shadow-[0_0_8px_rgba(255,170,0,0.15)]'
+                        ? 'border-secondary-purple text-secondary-purple bg-secondary-purple/10 font-bold shadow-[0_0_8px_rgba(168,85,247,0.15)]'
                         : 'border-cyber-gray-light text-slate-400 bg-cyber-gray/40'
                     }`}
                   >
@@ -178,7 +174,7 @@ export default function DataStructureVisualizer({ snapshot }) {
                       )}
                     </div>
                     {isMin && (
-                      <span className="text-[8px] tracking-wider uppercase font-bold text-neon-amber">
+                      <span className="text-[8px] tracking-wider uppercase font-bold text-secondary-purple">
                         NEXT
                       </span>
                     )}
@@ -198,12 +194,12 @@ export default function DataStructureVisualizer({ snapshot }) {
   };
 
   return (
-    <div className="bg-cyber-gray-dark border border-cyber-gray-light p-4 flex flex-col gap-4 shadow-xl select-none w-full">
+    <div className="glass-card p-4 flex flex-col gap-4 shadow-xl select-none w-full relative overflow-hidden">
       <div className="flex items-center justify-between border-b border-cyber-gray-light pb-2">
-        <h3 className="font-cyber-header text-xs font-bold text-slate-200 tracking-wider">
+        <h3 className="font-cyber-header text-[11px] font-bold text-white tracking-wider">
           DATA STRUCTURE FLUID STATE
         </h3>
-        <span className="font-cyber-mono text-[9px] text-neon-cyan uppercase">
+        <span className="font-cyber-mono text-[9px] text-primary-purple uppercase font-bold">
           {type === 'priority_queue' ? 'MIN-PRIORITY QUEUE' : type.toUpperCase()}
         </span>
       </div>
