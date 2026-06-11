@@ -325,15 +325,23 @@ input[type="range"]::-webkit-slider-thumb {
 /* Dynamic Scanning line effect animation */
 @keyframes scanBar {
   0% { transform: translateY(-100%); }
-  100% { transform: translateY(1000%); }
+  100% { transform: translateY(100%); }
+}
+
+.scan-bar-container {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  animation: scanBar 10s linear infinite;
+  z-index: 10;
 }
 
 .scan-bar {
   position: absolute;
+  bottom: 0;
   inset-x: 0;
-  height: 40px;
-  background: linear-gradient(180deg, transparent, rgba(56, 189, 248, 0.05), transparent);
-  animation: scanBar 12s linear infinite;
+  height: 45px;
+  background: linear-gradient(180deg, transparent, rgba(56, 189, 248, 0.06), transparent);
+  border-bottom: 1px solid rgba(56, 189, 248, 0.15);
   pointer-events: none;
-  z-index: 10;
 }

@@ -205,34 +205,34 @@ export default function GridCanvas({
       
       switch (state) {
         case CellState.DISCOVERED:
-          ctx.fillStyle = 'rgba(139, 92, 246, 0.15)';
-          ctx.strokeStyle = 'rgba(139, 92, 246, 0.3)';
+          ctx.fillStyle = 'rgba(79, 124, 255, 0.08)';
+          ctx.strokeStyle = 'rgba(79, 124, 255, 0.2)';
           ctx.fillRect(x + 2, y + 2, CELL_SIZE - 4, CELL_SIZE - 4);
           ctx.strokeRect(x + 2, y + 2, CELL_SIZE - 4, CELL_SIZE - 4);
           break;
 
         case CellState.IN_FRONTIER:
           // Frontier nodes have a breathing border glow
-          ctx.fillStyle = 'rgba(168, 85, 247, 0.22)';
-          ctx.strokeStyle = `rgba(168, 85, 247, ${0.45 + 0.15 * Math.sin(Date.now() / 120)})`;
+          ctx.fillStyle = 'rgba(56, 189, 248, 0.22)';
+          ctx.strokeStyle = `rgba(56, 189, 248, ${0.45 + 0.15 * Math.sin(Date.now() / 120)})`;
           ctx.lineWidth = 1.5;
           ctx.fillRect(x + 2, y + 2, CELL_SIZE - 4, CELL_SIZE - 4);
           ctx.strokeRect(x + 2, y + 2, CELL_SIZE - 4, CELL_SIZE - 4);
           break;
 
         case CellState.EXPANDED:
-          ctx.fillStyle = 'rgba(139, 92, 246, 0.05)';
-          ctx.strokeStyle = 'rgba(139, 92, 246, 0.12)';
+          ctx.fillStyle = 'rgba(79, 124, 255, 0.05)';
+          ctx.strokeStyle = 'rgba(79, 124, 255, 0.12)';
           ctx.fillRect(x + 2, y + 2, CELL_SIZE - 4, CELL_SIZE - 4);
           ctx.strokeRect(x + 2, y + 2, CELL_SIZE - 4, CELL_SIZE - 4);
           break;
 
         case CellState.CURRENT:
           // Pulsing scale factor for current node
-          ctx.fillStyle = '#c084fc';
+          ctx.fillStyle = '#38bdf8';
           ctx.strokeStyle = '#ffffff';
           ctx.lineWidth = 2;
-          ctx.shadowColor = '#c084fc';
+          ctx.shadowColor = '#38bdf8';
           ctx.shadowBlur = 10;
           
           ctx.translate(x + CELL_SIZE / 2, y + CELL_SIZE / 2);
@@ -242,17 +242,17 @@ export default function GridCanvas({
           break;
 
         case CellState.BACKTRACKED:
-          ctx.fillStyle = 'rgba(239, 68, 68, 0.1)';
-          ctx.strokeStyle = 'rgba(239, 68, 68, 0.25)';
+          ctx.fillStyle = 'rgba(255, 93, 115, 0.1)';
+          ctx.strokeStyle = 'rgba(255, 93, 115, 0.25)';
           ctx.fillRect(x + 2, y + 2, CELL_SIZE - 4, CELL_SIZE - 4);
           ctx.strokeRect(x + 2, y + 2, CELL_SIZE - 4, CELL_SIZE - 4);
           break;
 
         case CellState.FINAL_PATH:
-          ctx.fillStyle = 'rgba(139, 92, 246, 0.85)';
+          ctx.fillStyle = 'rgba(56, 189, 248, 0.85)';
           ctx.strokeStyle = '#ffffff';
           ctx.lineWidth = 1.5;
-          ctx.shadowColor = '#8b5cf6';
+          ctx.shadowColor = '#38bdf8';
           ctx.shadowBlur = 8;
           ctx.fillRect(x + 2, y + 2, CELL_SIZE - 4, CELL_SIZE - 4);
           ctx.strokeRect(x + 2, y + 2, CELL_SIZE - 4, CELL_SIZE - 4);
@@ -265,7 +265,7 @@ export default function GridCanvas({
     const drawEndpoint = (node, isStart) => {
       const x = node.col * CELL_SIZE;
       const y = node.row * CELL_SIZE;
-      const glowColor = isStart ? '#8b5cf6' : '#c084fc';
+      const glowColor = isStart ? '#38bdf8' : '#4f7cff';
       
       ctx.save();
       ctx.translate(x + CELL_SIZE / 2, y + CELL_SIZE / 2);
@@ -331,7 +331,7 @@ export default function GridCanvas({
     if (hoveredCell && isInteractive && !isPanning) {
       const hx = hoveredCell.col * CELL_SIZE;
       const hy = hoveredCell.row * CELL_SIZE;
-      ctx.strokeStyle = '#8b5cf6';
+      ctx.strokeStyle = '#38bdf8';
       ctx.lineWidth = 1.5;
       ctx.shadowColor = '#8b5cf6';
       ctx.shadowBlur = 6;
@@ -443,6 +443,17 @@ export default function GridCanvas({
       onMouseLeave={handleMouseUp}
       onContextMenu={handleContextMenu}
     >
+      {/* HUD corner ornaments */}
+      <div className="hud-corner-tl" />
+      <div className="hud-corner-tr" />
+      <div className="hud-corner-bl" />
+      <div className="hud-corner-br" />
+
+      {/* GPU-accelerated scanline container and bar */}
+      <div className="scan-bar-container">
+        <div className="scan-bar" />
+      </div>
+
       <canvas
         ref={canvasBgRef}
         className="absolute inset-0 pointer-events-none"
@@ -476,7 +487,7 @@ export default function GridCanvas({
             }
           }}
           disabled={currentZoom <= 0.301}
-          className="w-6 h-6 flex items-center justify-center font-cyber-mono font-bold text-xs rounded border border-cyber-gray-light bg-cyber-gray-dark/50 text-slate-400 hover:text-primary-purple hover:border-primary-purple hover:bg-primary-purple/10 hover:shadow-[0_0_8px_rgba(139,92,246,0.25)] active:scale-95 disabled:opacity-20 disabled:pointer-events-none focus:outline-none focus:ring-1 focus:ring-primary-purple transition-all cursor-pointer"
+          className="w-6 h-6 flex items-center justify-center font-cyber-mono font-bold text-xs rounded border border-cyber-gray-light bg-cyber-gray-dark/50 text-slate-400 hover:text-electric-cyan hover:border-electric-cyan hover:bg-electric-cyan/10 hover:shadow-[0_0_8px_rgba(56,189,248,0.25)] active:scale-95 disabled:opacity-20 disabled:pointer-events-none focus:outline-none focus:ring-1 focus:ring-electric-cyan transition-all cursor-pointer"
           title="Zoom Out"
         >
           −
@@ -494,7 +505,7 @@ export default function GridCanvas({
             }
           }}
           disabled={currentZoom >= 4.99}
-          className="w-6 h-6 flex items-center justify-center font-cyber-mono font-bold text-xs rounded border border-cyber-gray-light bg-cyber-gray-dark/50 text-slate-400 hover:text-primary-purple hover:border-primary-purple hover:bg-primary-purple/10 hover:shadow-[0_0_8px_rgba(139,92,246,0.25)] active:scale-95 disabled:opacity-20 disabled:pointer-events-none focus:outline-none focus:ring-1 focus:ring-primary-purple transition-all cursor-pointer"
+          className="w-6 h-6 flex items-center justify-center font-cyber-mono font-bold text-xs rounded border border-cyber-gray-light bg-cyber-gray-dark/50 text-slate-400 hover:text-electric-cyan hover:border-electric-cyan hover:bg-electric-cyan/10 hover:shadow-[0_0_8px_rgba(56,189,248,0.25)] active:scale-95 disabled:opacity-20 disabled:pointer-events-none focus:outline-none focus:ring-1 focus:ring-electric-cyan transition-all cursor-pointer"
           title="Zoom In"
         >
           +
