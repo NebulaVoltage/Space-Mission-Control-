@@ -22,35 +22,35 @@ export default function SimulationControls({
   const displayTotal = totalSteps;
 
   return (
-    <div className="bg-cyber-gray-dark border border-cyber-gray-light px-4 py-3 flex flex-col md:flex-row items-center justify-between gap-4 shadow-xl select-none w-full">
+    <div className="glass-card px-4 py-3 flex flex-col md:flex-row items-center justify-between gap-4 shadow-xl select-none w-full relative overflow-hidden">
       {/* Step Counter (Left) */}
       <div className="flex items-center gap-3">
         <div className="flex flex-col">
-          <span className="text-[9px] font-cyber-header uppercase tracking-wider text-slate-500">SIMULATION STEP</span>
-          <span className="font-cyber-mono text-sm text-neon-cyan font-bold tracking-widest min-w-32">
+          <span className="text-[9px] font-cyber-header uppercase tracking-wider text-slate-400">SIMULATION STEP</span>
+          <span className="font-cyber-mono text-sm text-primary-purple font-bold tracking-widest min-w-32">
             STEP {String(displayStep).padStart(3, '0')} / {String(displayTotal).padStart(3, '0')}
           </span>
         </div>
         
         {isComplete && (
-          <span className="bg-neon-green/10 border border-neon-green/30 text-neon-green font-cyber-header text-[9px] font-bold px-2 py-0.5 rounded tracking-widest animate-pulse">
+          <span className="bg-neon-green/10 border border-neon-green/35 text-neon-green font-cyber-header text-[9px] font-bold px-2 py-0.5 rounded tracking-widest animate-pulse">
             COMPLETE
           </span>
         )}
         {isPlaying && (
-          <span className="bg-neon-cyan/10 border border-neon-cyan/30 text-neon-cyan font-cyber-header text-[9px] font-bold px-2 py-0.5 rounded tracking-widest animate-pulse">
+          <span className="bg-primary-purple/10 border border-primary-purple/35 text-primary-purple font-cyber-header text-[9px] font-bold px-2 py-0.5 rounded tracking-widest animate-pulse">
             RUNNING
           </span>
         )}
         {status === SimStatus.PAUSED && (
-          <span className="bg-neon-amber/10 border border-neon-amber/30 text-neon-amber font-cyber-header text-[9px] font-bold px-2 py-0.5 rounded tracking-widest">
+          <span className="bg-neon-amber/10 border border-neon-amber/35 text-accent-violet font-cyber-header text-[9px] font-bold px-2 py-0.5 rounded tracking-widest">
             PAUSED
           </span>
         )}
       </div>
 
       {/* Transport Playback Buttons (Center) */}
-      <div className="flex items-center gap-1.5 bg-cyber-black/50 border border-cyber-gray-light p-1 rounded-lg">
+      <div className="flex items-center gap-1.5 bg-cyber-black/55 border border-cyber-gray-light p-1.5 rounded-lg">
         {/* Reset / Jump to start */}
         <button
           onClick={onReset}
@@ -78,11 +78,11 @@ export default function SimulationControls({
           title={isPlaying ? "Pause Simulation" : "Start/Resume Simulation"}
           className={`p-3 rounded-lg border cursor-pointer transition-all ${
             isPlaying
-              ? 'bg-neon-cyan/15 border-neon-cyan text-neon-cyan shadow-[0_0_15px_rgba(0,210,255,0.2)]'
-              : 'bg-neon-cyan hover:bg-neon-cyan/90 border-transparent text-cyber-black hover:scale-105'
+              ? 'bg-primary-purple/15 border-primary-purple text-primary-purple shadow-[0_0_15px_rgba(139,92,246,0.2)]'
+              : 'bg-primary-purple hover:bg-primary-purple/90 border-transparent text-white hover:scale-105'
           } disabled:opacity-30 disabled:scale-100 disabled:cursor-not-allowed`}
         >
-          {isPlaying ? <Pause className="w-4 h-4 fill-neon-cyan" /> : <Play className="w-4 h-4 fill-cyber-black" />}
+          {isPlaying ? <Pause className="w-4 h-4 fill-primary-purple" /> : <Play className="w-4 h-4 fill-white" />}
         </button>
 
         {/* Step Forward */}
@@ -102,7 +102,7 @@ export default function SimulationControls({
         <div className="flex flex-col w-full md:w-36">
           <div className="flex justify-between items-center text-[9px] font-cyber-header uppercase tracking-wider text-slate-500 mb-0.5">
             <span>FREQUENCY</span>
-            <span className="font-cyber-mono text-neon-cyan font-bold">{speed} Hz</span>
+            <span className="font-cyber-mono text-primary-purple font-bold">{speed} Hz</span>
           </div>
           <input
             type="range"
@@ -110,7 +110,7 @@ export default function SimulationControls({
             max="100"
             value={speed}
             onChange={(e) => onSpeedChange && onSpeedChange(parseInt(e.target.value))}
-            className="w-full accent-neon-cyan cursor-pointer bg-cyber-black rounded-lg h-1.5 appearance-none border border-cyber-gray-light"
+            className="w-full accent-primary-purple cursor-pointer bg-cyber-black rounded-lg h-1.5 appearance-none border border-cyber-gray-light"
           />
         </div>
       </div>
