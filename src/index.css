@@ -35,6 +35,10 @@
   --color-neon-red: #ff5d73;
   --color-neon-green: #00d084;
   --color-neon-purple: #7c5cff;
+  
+  --color-primary-purple: #38bdf8;
+  --color-secondary-purple: #4f7cff;
+  --color-accent-violet: #7c5cff;
 }
 
 /* Custom base resets */
