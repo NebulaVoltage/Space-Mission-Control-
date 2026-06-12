@@ -301,6 +301,7 @@ function MissionControl({ initialAlgorithm = AlgorithmName.ASTAR }) {
     [AlgorithmName.DFS]: '#6D5DFF',
     [AlgorithmName.DIJKSTRA]: '#00D1B2',
     [AlgorithmName.ASTAR]: '#3ABEFF',
+    [AlgorithmName.GBFS]: '#FF007F',
   }[algorithm] || '#3ABEFF';
 
   return (

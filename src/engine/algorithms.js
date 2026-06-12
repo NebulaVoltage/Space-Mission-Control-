@@ -741,6 +741,193 @@ export function* runAStar(grid, start, goal, options = {}) {
 }
 
 // ═══════════════════════════════════════════════════════════════
+// GBFS — Greedy Best-First Search
+// ═══════════════════════════════════════════════════════════════
+
+/**
+ * Greedy Best-First Search uses only the heuristic h(n) to find the goal.
+ * It is fast but does not guarantee the shortest path.
+ */
+export function* runGBFS(grid, start, goal, options = {}) {
+  const heuristic = options.heuristic || getDefaultHeuristic();
+  let step = 0;
+  const startKey = nodeKey(start.row, start.col);
+  const goalKey = nodeKey(goal.row, goal.col);
+
+  yield {
+    type: E.ALGORITHM_START, step: step++,
+    algorithm: E.AlgorithmName.GBFS, startNode: startKey, goalNode: goalKey,
+    metadata: { heuristic: heuristic.displayName || 'Manhattan' },
+    explanation: `GBFS initializes with heuristic: ${heuristic.displayName || 'Manhattan'}. Nodes with lowest h are explored first.`,
+  };
+
+  const gScore = new Map();      // actual cost from start
+  const hScore = new Map();      // cached heuristic values
+  const parentMap = new Map();
+  const depthMap = new Map();
+  const closedSet = new Set();   // expanded nodes
+  let heuristicEvals = 0;
+
+  // Priority queue sorted by h-score
+  const openSet = [];
+  const openSetKeys = new Set();
+  const pqInsert = (key, h) => {
+    openSet.push({ key, h });
+    openSet.sort((a, b) => a.h - b.h);
+    openSetKeys.add(key);
+  };
+  const pqExtractMin = () => {
+    const item = openSet.shift();
+    if (item) openSetKeys.delete(item.key);
+    return item;
+  };
+  const pqSnapshot = () => openSet.map(item => ({
+    nodeId: item.key,
+    priority: item.h,
+    g: gScore.get(item.key),
+    h: item.h,
+    f: item.h,
+  }));
+
+  // Initialize start
+  const startH = heuristic(start, goal);
+  heuristicEvals++;
+  gScore.set(startKey, 0);
+  hScore.set(startKey, startH);
+  parentMap.set(startKey, null);
+  depthMap.set(startKey, 0);
+  pqInsert(startKey, startH);
+
+  yield {
+    type: E.HEURISTIC_EVALUATED, step: step++,
+    nodeId: startKey, hValue: startH,
+    explanation: `h(${startKey}) = ${startH.toFixed(1)}`,
+  };
+
+  yield {
+    type: E.NODE_DISCOVERED, step: step++,
+    nodeId: startKey, parentId: null, depth: 0,
+    metadata: { g: 0, h: startH, f: startH },
+    explanation: `Start: g=0, h=${startH.toFixed(1)}, f=${startH.toFixed(1)}.`,
+  };
+
+  yield {
+    type: E.PRIORITY_ENQUEUE, step: step++,
+    nodeId: startKey,
+    priority: startH,
+    dataStructure: pqSnapshot(),
+  };
+
+  while (openSet.length > 0) {
+    const { key: currentKey, h: currentH } = pqExtractMin();
+
+    if (closedSet.has(currentKey)) continue; // lazy deletion
+
+    const { row: cr, col: cc } = E.parseKey(currentKey);
+    const currentG = gScore.get(currentKey);
+
+    yield {
+      type: E.PRIORITY_DEQUEUE, step: step++,
+      nodeId: currentKey,
+      priority: currentH,
+      dataStructure: pqSnapshot(),
+      metadata: { g: currentG, h: currentH, f: currentH },
+      explanation: `Extract min h-score: ${currentKey} with h=${currentH.toFixed(1)} (g=${currentG}).`,
+    };
+
+    yield {
+      type: E.NODE_CURRENT, step: step++,
+      nodeId: currentKey,
+      metadata: { g: currentG, h: currentH, f: currentH },
+    };
+
+    // Goal check
+    if (currentKey === goalKey) {
+      const path = [];
+      let trace = goalKey;
+      while (trace !== null) {
+        path.unshift(trace);
+        trace = parentMap.get(trace);
+      }
+
+      yield {
+        type: E.PATH_TRACED, step: step++,
+        path, pathCost: currentG,
+        explanation: `GBFS found a path! Cost: ${currentG}. Path: ${path.length} nodes. ${heuristicEvals} heuristic evaluations.`,
+      };
+
+      yield {
+        type: E.ALGORITHM_COMPLETE, step: step++,
+        pathFound: true, path, pathCost: currentG,
+        nodesDiscovered: gScore.size, nodesExpanded: closedSet.size + 1,
+        heuristicEvals,
+        openSetSize: openSet.length, closedSetSize: closedSet.size + 1,
+        explanation: `GBFS complete. Open set: ${openSet.length}, Closed set: ${closedSet.size + 1}. Heuristic evals: ${heuristicEvals}.`,
+      };
+      return;
+    }
+
+    closedSet.add(currentKey);
+    yield {
+      type: E.NODE_EXPANDED, step: step++,
+      nodeId: currentKey,
+      depth: depthMap.get(currentKey) || 0,
+      metadata: { g: currentG, h: currentH, f: currentH },
+    };
+
+    // Explore neighbors
+    const neighbors = getNeighbors(grid, cr, cc);
+    for (const neighbor of neighbors) {
+      const nk = nodeKey(neighbor.row, neighbor.col);
+      if (closedSet.has(nk)) continue;
+
+      const edgeWeight = E.getCellWeight(neighbor.type);
+      const tentativeG = currentG + edgeWeight;
+
+      if (!gScore.has(nk)) {
+        let h = heuristic({ row: neighbor.row, col: neighbor.col }, goal);
+        hScore.set(nk, h);
+        heuristicEvals++;
+
+        gScore.set(nk, tentativeG);
+        parentMap.set(nk, currentKey);
+        depthMap.set(nk, (depthMap.get(currentKey) || 0) + 1);
+        pqInsert(nk, h);
+
+        yield {
+          type: E.HEURISTIC_EVALUATED, step: step++,
+          nodeId: nk, hValue: h,
+          explanation: `h(${nk}) = ${h.toFixed(1)}`,
+        };
+
+        yield {
+          type: E.NODE_DISCOVERED, step: step++,
+          nodeId: nk, parentId: currentKey,
+          depth: depthMap.get(nk),
+          metadata: { g: tentativeG, h, f: h },
+          explanation: `Discovered ${nk}: g=${tentativeG}, h=${h.toFixed(1)}, f=${h.toFixed(1)}.`,
+        };
+
+        yield {
+          type: E.PRIORITY_ENQUEUE, step: step++,
+          nodeId: nk,
+          priority: h,
+          dataStructure: pqSnapshot(),
+        };
+      }
+    }
+  }
+
+  yield { type: E.NO_PATH, step: step++, explanation: 'Open set empty. No path to goal.' };
+  yield {
+    type: E.ALGORITHM_COMPLETE, step: step++,
+    pathFound: false, path: [], pathCost: 0,
+    nodesDiscovered: gScore.size, nodesExpanded: closedSet.size,
+    heuristicEvals, openSetSize: 0, closedSetSize: closedSet.size,
+  };
+}
+
+// ═══════════════════════════════════════════════════════════════
 // Algorithm Registry
 // ═══════════════════════════════════════════════════════════════
 
@@ -749,4 +936,5 @@ export const ALGORITHMS = Object.freeze({
   [E.AlgorithmName.DFS]:      { generator: runDFS,      name: 'DFS',      fullName: 'Depth-First Search',      weighted: false, optimal: false, dataStructure: 'stack',          timeComplexity: 'O(V + E)',     spaceComplexity: 'O(V)' },
   [E.AlgorithmName.DIJKSTRA]: { generator: runDijkstra, name: 'Dijkstra', fullName: "Dijkstra's Algorithm",    weighted: true,  optimal: true,  dataStructure: 'priority_queue', timeComplexity: 'O((V+E)logV)', spaceComplexity: 'O(V)' },
   [E.AlgorithmName.ASTAR]:    { generator: runAStar,    name: 'A*',       fullName: 'A-Star Search',           weighted: true,  optimal: true,  dataStructure: 'priority_queue', timeComplexity: 'O(b^d)',       spaceComplexity: 'O(b^d)' },
+  [E.AlgorithmName.GBFS]:     { generator: runGBFS,     name: 'GBFS',     fullName: 'Greedy Best-First Search',weighted: true,  optimal: false, dataStructure: 'priority_queue', timeComplexity: 'O(b^d)',       spaceComplexity: 'O(b^d)' },
 });

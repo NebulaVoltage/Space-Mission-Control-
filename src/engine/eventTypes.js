@@ -99,6 +99,7 @@ export const AlgorithmName = Object.freeze({
   DFS:      'DFS',
   DIJKSTRA: 'Dijkstra',
   ASTAR:    'A-Star',
+  GBFS:     'GBFS',
 });
 
 // ═══════════════════════════════════════════════════════════════

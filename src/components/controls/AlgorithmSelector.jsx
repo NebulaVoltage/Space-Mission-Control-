@@ -97,11 +97,29 @@ const ALGORITHMS = [
       </svg>
     ),
   },
+  {
+    id: AlgorithmName.GBFS,
+    label: 'GBFS',
+    full: 'Greedy Best-First',
+    theme: 'THE SPRINTER',
+    structure: 'Min-Heap (h)',
+    complexity: 'O(E log V)',
+    guarantee: 'Fastest Path',
+    accent: '#FF007F',
+    accentDim: 'rgba(255,0,127,0.07)',
+    icon: (
+      <svg viewBox="0 0 32 32" fill="none" style={{ width: 20, height: 20 }}>
+        <path d="M 4 16 Q 16 4 28 16" stroke="#FF007F" strokeWidth="1.5" fill="none" />
+        <circle cx="28" cy="16" r="3" fill="#FF007F" />
+        <circle cx="4" cy="16" r="2" fill="rgba(255,0,127,0.5)" />
+      </svg>
+    ),
+  },
 ];
 
 export default function AlgorithmSelector({ selectedAlgorithm, onSelect, disabled }) {
   return (
-    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 8 }}>
+    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5,1fr)', gap: 8 }}>
       {ALGORITHMS.map((algo) => {
         const active = selectedAlgorithm === algo.id;
         return (
