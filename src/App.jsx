@@ -108,6 +108,269 @@ const ScannerSectorOverlay = () => (
 );
 
 /* ════════════════════════════════════════════════════════
+   PROCEDURAL TERRAIN GENERATORS
+════════════════════════════════════════════════════════ */
+
+const generateRecursiveMaze = (grid, startNode, goalNode) => {
+  const rows = grid.length;
+  const cols = grid[0].length;
+
+  // 1. Fill everything with obstacles
+  for (let r = 0; r < rows; r++) {
+    for (let c = 0; c < cols; c++) {
+      grid[r][c].type = CellType.OBSTACLE;
+    }
+  }
+
+  const visited = Array.from({ length: rows }, () => Array(cols).fill(false));
+  const stack = [];
+
+  // Start carving from a cell (choose odd row/col for grid alignment)
+  const startR = 1;
+  const startC = 1;
+  visited[startR][startC] = true;
+  grid[startR][startC].type = CellType.NORMAL;
+  stack.push([startR, startC]);
+
+  while (stack.length > 0) {
+    const [r, c] = stack[stack.length - 1];
+    const neighbors = [];
+
+    const dirs = [
+      [-2, 0], [2, 0], [0, -2], [0, 2]
+    ];
+
+    for (const [dr, dc] of dirs) {
+      const nr = r + dr;
+      const nc = c + dc;
+      if (nr > 0 && nr < rows - 1 && nc > 0 && nc < cols - 1) {
+        if (!visited[nr][nc]) {
+          neighbors.push([nr, nc, dr, dc]);
+        }
+      }
+    }
+
+    if (neighbors.length > 0) {
+      // Pick random neighbor
+      const [nr, nc, dr, dc] = neighbors[Math.floor(Math.random() * neighbors.length)];
+
+      // Carve the cell in between
+      grid[r + dr / 2][c + dc / 2].type = CellType.NORMAL;
+      // Carve the destination cell
+      grid[nr][nc].type = CellType.NORMAL;
+
+      visited[nr][nc] = true;
+      stack.push([nr, nc]);
+    } else {
+      stack.pop();
+    }
+  }
+
+  // Ensure start and goal are normal
+  grid[startNode.row][startNode.col].type = CellType.NORMAL;
+  grid[goalNode.row][goalNode.col].type = CellType.NORMAL;
+
+  // Connect start and goal to the nearest carved paths
+  const connectToMaze = (node) => {
+    const { row, col } = node;
+    const dirs = [[-1, 0], [1, 0], [0, -1], [0, 1]];
+    // Check if there is already a normal neighbor
+    for (const [dr, dc] of dirs) {
+      const nr = row + dr;
+      const nc = col + dc;
+      if (nr >= 0 && nr < rows && nc >= 0 && nc < cols) {
+        if (grid[nr][nc].type === CellType.NORMAL) {
+          return; // already connected
+        }
+      }
+    }
+    // If not connected, carve one random neighbor
+    const validDirs = dirs.filter(([dr, dc]) => {
+      const nr = row + dr;
+      const nc = col + dc;
+      return nr > 0 && nr < rows - 1 && nc > 0 && nc < cols - 1;
+    });
+    if (validDirs.length > 0) {
+      const [dr, dc] = validDirs[Math.floor(Math.random() * validDirs.length)];
+      grid[row + dr][col + dc].type = CellType.NORMAL;
+    }
+  };
+
+  connectToMaze(startNode);
+  connectToMaze(goalNode);
+};
+
+const generateCellularCaves = (grid, startNode, goalNode) => {
+  const rows = grid.length;
+  const cols = grid[0].length;
+
+  // Initialize randomly (45% obstacles)
+  let map = Array.from({ length: rows }, () => Array(cols).fill(CellType.NORMAL));
+  for (let r = 0; r < rows; r++) {
+    for (let c = 0; c < cols; c++) {
+      if (r === 0 || r === rows - 1 || c === 0 || c === cols - 1) {
+        map[r][c] = CellType.OBSTACLE; // border
+      } else {
+        map[r][c] = Math.random() < 0.45 ? CellType.OBSTACLE : CellType.NORMAL;
+      }
+    }
+  }
+
+  // Run 3 cellular automata generations
+  const countObstacleNeighbors = (gridMap, r, c) => {
+    let count = 0;
+    for (let i = -1; i <= 1; i++) {
+      for (let j = -1; j <= 1; j++) {
+        const nr = r + i;
+        const nc = c + j;
+        if (nr >= 0 && nr < rows && nc >= 0 && nc < cols) {
+          if (gridMap[nr][nc] === CellType.OBSTACLE) {
+            count++;
+          }
+        } else {
+          count++; // count borders as obstacles
+        }
+      }
+    }
+    return count;
+  };
+
+  for (let step = 0; step < 3; step++) {
+    const nextMap = Array.from({ length: rows }, () => Array(cols).fill(CellType.NORMAL));
+    for (let r = 0; r < rows; r++) {
+      for (let c = 0; c < cols; c++) {
+        if (r === 0 || r === rows - 1 || c === 0 || c === cols - 1) {
+          nextMap[r][c] = CellType.OBSTACLE;
+        } else {
+          const neighbors = countObstacleNeighbors(map, r, c);
+          if (neighbors >= 5) {
+            nextMap[r][c] = CellType.OBSTACLE;
+          } else {
+            nextMap[r][c] = CellType.NORMAL;
+          }
+        }
+      }
+    }
+    map = nextMap;
+  }
+
+  // Write to grid
+  for (let r = 0; r < rows; r++) {
+    for (let c = 0; c < cols; c++) {
+      grid[r][c].type = map[r][c];
+    }
+  }
+
+  // Ensure start and goal are normal
+  grid[startNode.row][startNode.col].type = CellType.NORMAL;
+  grid[goalNode.row][goalNode.col].type = CellType.NORMAL;
+
+  // Clear a small 3x3 area around start and goal to make sure player can escape
+  const clearArea = (node) => {
+    for (let dr = -1; dr <= 1; dr++) {
+      for (let dc = -1; dc <= 1; dc++) {
+        const nr = node.row + dr;
+        const nc = node.col + dc;
+        if (nr > 0 && nr < rows - 1 && nc > 0 && nc < cols - 1) {
+          grid[nr][nc].type = CellType.NORMAL;
+        }
+      }
+    }
+  };
+  clearArea(startNode);
+  clearArea(goalNode);
+};
+
+const generatePrimsMaze = (grid, startNode, goalNode) => {
+  const rows = grid.length;
+  const cols = grid[0].length;
+
+  // Initialize all to OBSTACLE
+  for (let r = 0; r < rows; r++) {
+    for (let c = 0; c < cols; c++) {
+      grid[r][c].type = CellType.OBSTACLE;
+    }
+  }
+
+  const inMaze = Array.from({ length: rows }, () => Array(cols).fill(false));
+  const walls = []; // array of { wr, wc, or, oc } - wall coordinates and opposite coordinates
+
+  // Start at (1, 1)
+  const startR = 1;
+  const startC = 1;
+  inMaze[startR][startC] = true;
+  grid[startR][startC].type = CellType.NORMAL;
+
+  // Add walls of (1,1)
+  const dirs = [[-1, 0], [1, 0], [0, -1], [0, 1]];
+  for (const [dr, dc] of dirs) {
+    const wr = startR + dr;
+    const wc = startC + dc;
+    const or = wr + dr;
+    const oc = wc + dc;
+    if (or > 0 && or < rows - 1 && oc > 0 && oc < cols - 1) {
+      walls.push({ wr, wc, or, oc });
+    }
+  }
+
+  while (walls.length > 0) {
+    const idx = Math.floor(Math.random() * walls.length);
+    const { wr, wc, or, oc } = walls[idx];
+    walls.splice(idx, 1);
+
+    if (!inMaze[or][oc]) {
+      // Carve through the wall and the opposite cell
+      grid[wr][wc].type = CellType.NORMAL;
+      grid[or][oc].type = CellType.NORMAL;
+      inMaze[or][oc] = true;
+
+      // Add walls of the new cell
+      for (const [dr, dc] of dirs) {
+        const nwr = or + dr;
+        const nwc = oc + dc;
+        const nor = nwr + dr;
+        const noc = nwc + dc;
+        if (nor > 0 && nor < rows - 1 && noc > 0 && noc < cols - 1) {
+          if (!inMaze[nor][noc]) {
+            walls.push({ wr: nwr, wc: nwc, or: nor, oc: noc });
+          }
+        }
+      }
+    }
+  }
+
+  // Ensure start and goal are normal
+  grid[startNode.row][startNode.col].type = CellType.NORMAL;
+  grid[goalNode.row][goalNode.col].type = CellType.NORMAL;
+
+  // Connect start and goal to the maze
+  const connectToMaze = (node) => {
+    const { row, col } = node;
+    const dirs = [[-1, 0], [1, 0], [0, -1], [0, 1]];
+    for (const [dr, dc] of dirs) {
+      const nr = row + dr;
+      const nc = col + dc;
+      if (nr >= 0 && nr < rows && nc >= 0 && nc < cols) {
+        if (grid[nr][nc].type === CellType.NORMAL) {
+          return;
+        }
+      }
+    }
+    const validDirs = dirs.filter(([dr, dc]) => {
+      const nr = row + dr;
+      const nc = col + dc;
+      return nr > 0 && nr < rows - 1 && nc > 0 && nc < cols - 1;
+    });
+    if (validDirs.length > 0) {
+      const [dr, dc] = validDirs[Math.floor(Math.random() * validDirs.length)];
+      grid[row + dr][col + dc].type = CellType.NORMAL;
+    }
+  };
+  connectToMaze(startNode);
+  connectToMaze(goalNode);
+};
+
+/* ════════════════════════════════════════════════════════
    MISSION CONTROL — main application interface
 ════════════════════════════════════════════════════════ */
 function MissionControl({ initialAlgorithm = AlgorithmName.ASTAR }) {
@@ -261,6 +524,12 @@ function MissionControl({ initialAlgorithm = AlgorithmName.ASTAR }) {
           if (rand < 0.22) nextGrid[r][c].type = CellType.WEIGHTED;
           else if (rand < 0.30) nextGrid[r][c].type = CellType.HEAVY;
         }
+    } else if (presetId === 'recursive-maze') {
+      generateRecursiveMaze(nextGrid, startNode, goalNode);
+    } else if (presetId === 'cellular-caves') {
+      generateCellularCaves(nextGrid, startNode, goalNode);
+    } else if (presetId === 'prims-maze') {
+      generatePrimsMaze(nextGrid, startNode, goalNode);
     }
     setGrid(nextGrid);
   }, [startNode, goalNode]);

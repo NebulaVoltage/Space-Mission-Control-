@@ -46,6 +46,9 @@ export default function TerrainEditor({
     { id: 'orbital-blockades', name: 'Orbital Blockades' },
     { id: 'asteroid-belt', name: 'Asteroid Belt' },
     { id: 'nebula-field', name: 'Nebula Field' },
+    { id: 'recursive-maze', name: 'Recursive Maze' },
+    { id: 'cellular-caves', name: 'Cellular Caves' },
+    { id: 'prims-maze', name: 'Prim\'s Maze' },
     { id: 'deep-space', name: 'Deep Space Void' },
   ];
 
